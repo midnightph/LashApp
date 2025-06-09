@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "src/navigation/TabNavigator.jsx", "app/index.tsx", "src/screens/HomeScreen.jsx"  ]
 }

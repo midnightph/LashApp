@@ -13,7 +13,7 @@ export default function Login({ navigation }: any) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified) {
-        navigation.navigate('Home');
+        navigation.navigate('Tabs');
       }
     });
     return unsubscribe; // limpa o listener ao desmontar o componente
@@ -30,7 +30,7 @@ export default function Login({ navigation }: any) {
       if (!response.user.emailVerified) {
         alert('Verifique seu email antes de continuar.');
       } else {
-        navigation.navigate('Home');
+        navigation.navigate('Tabs');
       }
     } catch (error) {
       alert("Não conseguimos efetuar o login: " + error);

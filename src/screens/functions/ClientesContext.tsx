@@ -1,5 +1,8 @@
-import React, { createContext, useState, useContext } from 'react';
-
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { getDatabase, ref, onValue } from "firebase/database";
+import { collection, getDocs } from 'firebase/firestore';
+import { database } from '@/src/firebaseConfig';
+import { set } from 'date-fns';
 
 const ClientesContext = createContext();
 
@@ -48,6 +51,22 @@ export function ClientesProvider({ children }) {
     });
 };
 
+    const db = getDatabase()
+    const [clienteInf, setClienteInf] = useState([]);
+    useEffect(() => {
+        getInfo();
+    }, [])
+    const getInfo = async () => {
+        const querySnapshot = await getDocs(collection(database, 'Cliente'));
+        const clientesArray: any[] = [];
+
+        querySnapshot.forEach((doc) => {
+            clientesArray.push({ id: doc.id, ...doc.data() });
+        });
+
+        setClienteInf(clientesArray[1]);
+        console.log(clienteInf);
+    }
 
     const carregarClientes = () => {
         const data = [
@@ -212,13 +231,14 @@ export function ClientesProvider({ children }) {
                         observacoes: ''
                     }
                 ]
-            }
+            },
+            clienteInf
         ];
         setClientes(data);
     };
 
     return (
-        <ClientesContext.Provider value={{ clientes, adicionarCliente, carregarClientes, atualizarUltimosClientes, atualizarAtendimento, atualizarFoto }}>
+        <ClientesContext.Provider value={{ clienteInf, getInfo, clientes, adicionarCliente, carregarClientes, atualizarUltimosClientes, atualizarAtendimento, atualizarFoto }}>
             {children}
         </ClientesContext.Provider>
     );

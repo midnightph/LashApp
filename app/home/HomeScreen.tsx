@@ -16,11 +16,34 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import styles from './styles';
+import { database } from '../../src/firebaseConfig';
+import { getDocs, collection } from 'firebase/firestore';
 
-export default function App({navigation}) {
+export default function App({navigation}: any) {
     const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
     const insets = useSafeAreaInsets();
     const [ultimosClientes, setUltimosClientes] = useState([]);
+
+    const [nome, setNome] = useState('');
+
+    useEffect(() => {
+        const fetchClientes = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(database, 'user'));
+                const clientesArray: any[] = [];
+
+                querySnapshot.forEach((doc) => {
+                    clientesArray.push({ id: doc.id, ...doc.data() });
+                });
+
+                setNome(clientesArray[0].nome);
+            } catch (error) {
+                console.error('Erro ao buscar clientes:', error);
+            }
+        };
+
+        fetchClientes();
+    }, []);
 
     useFocusEffect(
     useCallback(() => {
@@ -47,7 +70,7 @@ export default function App({navigation}) {
                 >
                     <View style={[styles.container, { paddingTop: insets.top }]}>
                         <View style={styles.header}>
-                            <Text style={styles.welcomeText}>👋 Bem-vinda ao Studio Lash!</Text>
+                            <Text style={styles.welcomeText}>👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome : ''}!</Text>
                             <Text style={styles.subtitle}>Últimos clientes atendidos:</Text>
                         </View>
 

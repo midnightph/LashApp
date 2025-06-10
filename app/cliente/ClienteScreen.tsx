@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './clientStyles';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 
-export default function ClienteScreen({navigation}) {
+export default function ClienteScreen({navigation} : any) {
 
     const [termoBusca, setTermoBusca] = useState('');
     const [nome, setNome] = useState('');

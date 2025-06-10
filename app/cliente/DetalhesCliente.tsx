@@ -7,7 +7,7 @@ import * as Sharing from 'expo-sharing';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function DetalhesCliente({ route, navigation }) {
+export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
   const { atualizarAtendimento } = useClientes();
   const c = cliente.atendimento

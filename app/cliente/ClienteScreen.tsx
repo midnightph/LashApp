@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from './clientStyles';
+import styles from '../home/styles';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 
 export default function ClienteScreen({navigation} : any) {

@@ -6,7 +6,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Login from './index';
 import { Ionicons } from 'react-native-vector-icons';
 import HomeScreen from './home/HomeScreen';
+<<<<<<< HEAD
 import Mapping from "./home/Mapping";
+=======
+>>>>>>> 2e5650f2aa3a70bb5161ec4049ebf3b2bbc9c4c3
 import ClienteScreen from "./cliente/ClienteScreen";
 import Profile from "./home/Profile";
 import DetalhesCliente from "./cliente/DetalhesCliente";
@@ -63,7 +66,10 @@ export default function RootLayout() {
             <Stack.Screen name="Tabs" component={TabNavigator} />
             {/* A tela de detalhes de cliente é acessada fora das tabs */}
             <Stack.Screen name="DetalhesCliente" component={DetalhesCliente} />
+<<<<<<< HEAD
             <Stack.Screen name="Mapping" component={Mapping} />
+=======
+>>>>>>> 2e5650f2aa3a70bb5161ec4049ebf3b2bbc9c4c3
           </Stack.Navigator>
       </ClientesProvider>
     </SafeAreaProvider>

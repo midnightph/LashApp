@@ -23,8 +23,8 @@ export default function App({navigation}: any) {
     const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
     const insets = useSafeAreaInsets();
     const [ultimosClientes, setUltimosClientes] = useState([]);
-
     const [nome, setNome] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchClientes = async () => {
@@ -45,9 +45,11 @@ export default function App({navigation}: any) {
         fetchClientes();
     }, []);
 
-    useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
-      carregarClientes();
+      setIsLoading(true);
+      carregarClientes()
+      setIsLoading(false);
     }, [])
   );
 
@@ -75,7 +77,7 @@ export default function App({navigation}: any) {
                         </View>
 
                         <View style={{ paddingBottom: 20 }}>
-                            <FlatList
+                            {isLoading ? <Text style={styles.loadingText}>Carregando clientes...</Text> : <FlatList
                                 horizontal
                                 data={ultimosClientes}
                                 keyExtractor={(item) => item.id}
@@ -90,7 +92,7 @@ export default function App({navigation}: any) {
                                         <Text style={styles.clienteNome}>{item.nome}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.procedimento}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc || 'Data não disponível'}</Text>
-                                        {item.atendimento ? (
+                                        {item.aten ? (
                                             <Text style={styles.clienteAtendimento}>Em atendimento</Text>
                                         ) : (
                                             <Text style={styles.clienteAtendimento}></Text>
@@ -99,7 +101,7 @@ export default function App({navigation}: any) {
                                 )}
                                 contentContainerStyle={styles.listContainer}
                                 showsHorizontalScrollIndicator={false}
-                            />
+                            />}
                         </View>
 
                         <AddCliente />

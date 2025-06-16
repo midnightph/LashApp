@@ -46,12 +46,19 @@ export default function App({navigation}: any) {
     }, []);
 
   useFocusEffect(
-    useCallback(() => {
+  useCallback(() => {
+    const carregar = async () => {
       setIsLoading(true);
-      carregarClientes()
+      await carregarClientes();
+      const atualizados = atualizarUltimosClientes(); // <- espera os dados carregarem
+      setUltimosClientes(atualizados);
+      console.log(ultimosClientes[0].dataUltimoProcedimento)
       setIsLoading(false);
-    }, [])
-  );
+    };
+    carregar();
+  }, [carregarClientes, atualizarUltimosClientes])
+);
+
 
     useEffect(() => {
         if (clientes.length > 0) {
@@ -89,10 +96,10 @@ export default function App({navigation}: any) {
                                             source={{ uri: item.foto }}
                                             style={styles.clientImage}
                                         />
-                                        <Text style={styles.clienteNome}>{item.nome}</Text>
-                                        <Text style={styles.clienteProcedimento}>{item.procedimento}</Text>
+                                        <Text style={styles.clienteNome}>{item.name}</Text>
+                                        <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc || 'Data não disponível'}</Text>
-                                        {item.aten ? (
+                                        {item.atend ? (
                                             <Text style={styles.clienteAtendimento}>Em atendimento</Text>
                                         ) : (
                                             <Text style={styles.clienteAtendimento}></Text>

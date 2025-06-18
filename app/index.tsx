@@ -1,23 +1,31 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { auth } from '../src/firebaseConfig';
-import '../assets/fonts/SpaceMono-Regular.ttf';
+import { auth, database } from '../src/firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
+import { useClientes } from '../src/screens/functions/ClientesContext'; // importa o contexto
 
 export default function Login({ navigation }: any) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('pedrorodacinski26@gmail.com');
+  const [password, setPassword] = useState('Pedro!2606');
   const [loading, setLoading] = useState(false);
+  const [autoLogin, setAutoLogin] = useState(true);
 
-  // ✅ Verifica se usuário já está logado
+  const { limparClientes } = useClientes(); // pega a função do contexto
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && user.emailVerified) {
-        navigation.navigate('Tabs');
+      if (user && user.emailVerified && autoLogin) {
+        limparClientes(); // limpa dados do contexto ao detectar novo login
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Tabs' }]
+        });
+        setAutoLogin(false);
       }
     });
-    return unsubscribe; // limpa o listener ao desmontar o componente
-  }, []);
+    return unsubscribe;
+  }, [autoLogin]);
 
   const login = async () => {
     if (email === '' || password === '') {
@@ -27,10 +35,16 @@ export default function Login({ navigation }: any) {
     try {
       setLoading(true);
       const response = await signInWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(database, 'user', response.user.uid), { email: response.user.email });
+
       if (!response.user.emailVerified) {
         alert('Verifique seu email antes de continuar.');
       } else {
-        navigation.navigate('Tabs');
+        limparClientes(); // limpa dados do usuário anterior
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Tabs' }]
+        });
       }
     } catch (error) {
       alert("Não conseguimos efetuar o login: " + error);
@@ -55,6 +69,12 @@ export default function Login({ navigation }: any) {
       setLoading(false);
     }
   };
+
+  const sair = async () => {
+    await signOut(auth);
+    setAutoLogin(false)
+    navigation.reset('Login')
+  }
 
   return (
     <View style={styles.container}>

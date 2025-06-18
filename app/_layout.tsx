@@ -61,9 +61,9 @@ export default function RootLayout() {
           <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Tabs" component={TabNavigator} />
-            {/* A tela de detalhes de cliente é acessada fora das tabs */}
             <Stack.Screen name="DetalhesCliente" component={DetalhesCliente} />
             <Stack.Screen name="Mapping" component={Mapping} />
+            <Stack.Screen name='Profile' component={Profile} />
           </Stack.Navigator>
       </ClientesProvider>
     </SafeAreaProvider>

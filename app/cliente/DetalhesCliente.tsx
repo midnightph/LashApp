@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { format, set } from 'date-fns';
+import { format, parse } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
 import { View, Text, Image, StyleSheet, Linking, TouchableOpacity, Alert, Platform, Modal, TextInput, Button, ScrollView } from 'react-native';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import * as Print from 'expo-print';
@@ -21,13 +23,13 @@ export default function DetalhesCliente({ route, navigation }: any) {
   useEffect(() => {}, []);
 
   const gerarRecibo = (cliente, valor) => {
-    if (cliente.atendimento) {
+    if (cliente.atend) {
       Alert.alert('Atenção', 'O cliente está em atendimento, impossível gerar recibo!');
       return null;
     }
     return {
-      nome: cliente.nome,
-      procedimento: cliente.procedimento,
+      nome: cliente.name,
+      procedimento: cliente.proc,
       data: new Date().toLocaleDateString(),
       valor: `R$ ${valor.toFixed(2)}`,
       id: cliente.id,
@@ -145,18 +147,15 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
         {checkFrequencia(cliente) ? 
         <View style={{flexDirection: 'column', alignItems: 'center'}}>
-        <Text style={[styles.nome, {color: '#C28840', fontWeight: 'bold'}]}>{cliente.nome}</Text> 
+        <Text style={[styles.nome, {color: '#C28840', fontWeight: 'bold'}]}>{cliente.name}</Text> 
         <Text>Cliente fiel</Text>
         </View>
-        : <Text style={styles.nome}>{cliente.nome}</Text>}
+        : <Text style={styles.nome}>{cliente.name}</Text>}
 
         </View>
         <View style={styles.info}>
-        <Text style={styles.texto}>Procedimento: {cliente.procedimento}</Text>
-        <Text style={styles.texto}>Data de Nascimento: {cliente.dataNasc || 'Não informada'}</Text>
-        <Text style={styles.texto}>
-          Data do último procedimento: {format(new Date(cliente.dataUltimoProcedimento), 'dd/MM/yyyy')}
-        </Text>
+        <Text style={styles.texto}>Procedimento: {cliente.proc}</Text>
+        
         <Text
           style={[styles.texto, styles.telefone]}
           onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}
@@ -170,14 +169,15 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <ScrollView style={styles.scrollList} showsVerticalScrollIndicator={false}>
             {Array.isArray(cliente.historico) && cliente.historico.map((item) => (
               <View key={item.id} style={styles.itemLista}>
-                <Text style={styles.itemTexto}>{item.procedimento}</Text>
-                <Text style={styles.itemData}>{format(new Date(item.data), 'dd/MM/yyyy')}</Text>
+                <Text style={styles.itemTexto}>{item.proc}</Text>
               </View>
             ))}
           </ScrollView>
         </View>
 
-        <Button title='AI para mapping' style={styles.button} onPress={() => navigation.navigate('Mapping', { cliente })}/>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Mapping', { cliente })}>
+          <Text>AI para mapping</Text>
+        </TouchableOpacity>
 
 
         <View style={styles.inputContainer}>

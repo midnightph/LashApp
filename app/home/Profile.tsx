@@ -5,8 +5,10 @@ import { StyleSheet } from "react-native";
 import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
 import { useState } from "react";
 import { useClientes } from '../../src/screens/functions/ClientesContext';
+import { router } from "expo-router";
+import sair from '../index';
 
-export default function Profile() {
+export default function Profile({navigation}: any) {
     const [whatsapp, setWhatsapp] = useState('');
     const { clientes } = useClientes();
     const handleEnviarLembretes = () => {
@@ -34,6 +36,7 @@ export default function Profile() {
                 <Text style={styles.insideContainer}>Whatsapp: (11) 99999-9999</Text>
                 <Text style={styles.insideContainer}>Email: WlB0j@example.com</Text>
             </AccordionField>
+            <Button title='Sair' onPress={() => {sair()}} />
         </View>
         </SafeAreaView>
     )

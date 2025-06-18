@@ -3,10 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useClientes } from './ClientesContext';
 import styles from './styles';
+import { getAuth } from 'firebase/auth';
+import { addDoc, collection } from 'firebase/firestore';
+import { database } from '@/src/firebaseConfig';
 
 export default function AddCliente() {
   const [showForm, setShowForm] = useState(false);
-  const [nome, setNome] = useState('');
+  const [name, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [mapping, setMapping] = useState('');
   const [dataNasc, setDataNasc] = useState(new Date());
@@ -14,28 +17,37 @@ export default function AddCliente() {
 
   const { adicionarCliente } = useClientes();
 
-  const handleSendForm = () => {
-    if (nome.length < 3 || telefone.length < 10 || mapping.length < 3) {
+  const handleSendForm = async () => {
+    if (name.length < 3 || telefone.length < 10 || mapping.length < 3) {
       Alert.alert('Preencha todos os campos corretamente!');
       return;
     }
 
     const novoCliente = {
       id: Math.random().toString(36).substr(2, 9),
-      nome,
+      name,
       telefone,
-      procedimento: mapping,
+      proc: mapping,
       dataNasc: dataNasc.toLocaleDateString('pt-BR'),
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'
     };
 
-    adicionarCliente(novoCliente);
+    const user = getAuth().currentUser;
+    if (!user) return;
+
+    try {
+      await addDoc(collection(database, 'user', user.uid, 'Clientes'), novoCliente);
+      alert('Cliente cadastrado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao adicionar cliente:', error);
+      return;
+    }
+
     setShowForm(false);
     setNome('');
     setTelefone('');
     setMapping('');
     setDataNasc(new Date());
-    Alert.alert('Cliente cadastrado com sucesso!');
   };
 
   return (
@@ -52,7 +64,7 @@ export default function AddCliente() {
           <Text style={styles.textInput}>Nome da cliente</Text>
           <TextInput
             placeholder="Digite aqui"
-            value={nome}
+            value={name}
             onChangeText={setNome}
             style={styles.input}
             placeholderTextColor="#888"

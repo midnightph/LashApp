@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { getDocs, collection, doc } from 'firebase/firestore';
 import { database } from '@/src/firebaseConfig';
+import { getAuth } from 'firebase/auth';
 
 const ClientesContext = createContext();
 
@@ -82,32 +83,38 @@ export function ClientesProvider({ children }) {
     };
 
     const getInfo = async () => {
-        const querySnapshot = await getDocs(collection(database, 'user'));
-        const usuarios = [];
-        querySnapshot.forEach(doc => usuarios.push({ id: doc.id, ...doc.data() }));
+    const user = getAuth().currentUser;
+    if (!user) return;
 
-        if (usuarios.length === 0) return;
+    const userId = user.uid;
+    
+    setClienteInf(userId);
 
-        const userId = usuarios[0].id;
-        setClienteInf(userId);
+    const clienteRef = collection(database, 'user', userId, 'Clientes');
+    const clientesSnapshot = await getDocs(clienteRef);
+    const clientesDoUsuario = [];
 
-        const clienteRef = collection(doc(database, 'user', userId), 'Clientes');
-        const clientesSnapshot = await getDocs(clienteRef);
-        const clientesDoUsuario = [];
-
-        clientesSnapshot.forEach(doc => {
-            clientesDoUsuario.push({ id: doc.id, 
-                ...doc.data(), 
-                foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445' });
+    clientesSnapshot.forEach(doc => {
+        const data = doc.data();
+        clientesDoUsuario.push({ 
+            id: doc.id,
+            ...data,
+            dataNasc: data.dataNasc,
+            foto: data.foto || 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'
         });
+    });
 
-        setClientes(clientesDoUsuario);
-    };
+    setClientes(clientesDoUsuario);
+};
 
     const carregarClientes = async () => {
         if (clientes.length > 0) return; // Evita loop
         await getInfo();
     };
+    const limparClientes = () => {
+  setClientes([]);
+  setClienteInf(null);
+};
 
     return (
         <ClientesContext.Provider value={{
@@ -118,7 +125,8 @@ export function ClientesProvider({ children }) {
             carregarClientes,
             atualizarUltimosClientes,
             atualizarAtendimento,
-            atualizarFoto
+            atualizarFoto,
+            limparClientes
         }}>
             {children}
         </ClientesContext.Provider>
@@ -132,3 +140,5 @@ export function useClientes() {
     }
     return context;
 }
+
+

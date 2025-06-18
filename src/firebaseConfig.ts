@@ -1,8 +1,17 @@
-import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth/react-native';
+import { initializeApp, getApps } from 'firebase/app';
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+} from 'firebase/auth/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+} from 'firebase/firestore';
 
+// Configuração
 const firebaseConfig = {
   apiKey: "AIzaSyB02Olw46N7qlJlPfwIlDFNljSHD_HG_vo",
   authDomain: "adad-a313e.firebaseapp.com",
@@ -13,12 +22,37 @@ const firebaseConfig = {
   measurementId: "G-BP7DX4VF2N"
 };
 
-const app = initializeApp(firebaseConfig);
+// Inicializa Firebase App (só se ainda não foi)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// Inicializa ou pega Auth
+let auth: any;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (e) {
+  auth = getAuth(app);
+}
 
 const database = getFirestore(app);
 
-export { app, auth, database };
+// Função que busca clientes do usuário logado
+async function getClientesDoUsuario() {
+  const currentUser = getAuth().currentUser;
+
+  if (!currentUser) throw new Error('Usuário não está logado');
+
+  const ref = collection(database, 'user', currentUser.uid, 'Clientes');
+  const querySnapshot = await getDocs(ref);
+
+  const clientes = [];
+  querySnapshot.forEach((doc) => {
+    clientes.push({ id: doc.id, ...doc.data() });
+  });
+
+  return clientes;
+  
+}
+
+export { app, auth, database, getClientesDoUsuario };

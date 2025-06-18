@@ -17,7 +17,9 @@ import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import styles from './styles';
 import { database } from '../../src/firebaseConfig';
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, getDoc, doc } from 'firebase/firestore';
+import { set } from 'date-fns';
+import { getAuth } from 'firebase/auth';
 
 export default function App({navigation}: any) {
     const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
@@ -28,18 +30,24 @@ export default function App({navigation}: any) {
 
     useEffect(() => {
         const fetchClientes = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(database, 'user'));
-                const clientesArray: any[] = [];
 
-                querySnapshot.forEach((doc) => {
-                    clientesArray.push({ id: doc.id, ...doc.data() });
-                });
+        try {
+        const user = getAuth().currentUser;
+        if (!user) return;
 
-                setNome(clientesArray[0].nome);
-            } catch (error) {
-                console.error('Erro ao buscar clientes:', error);
-            }
+        const docRef = doc(database, 'user', user.uid);
+        const snapshot = await getDoc(docRef);
+
+        if (snapshot.exists()) {
+        const dados = snapshot.data();
+        setNome(dados.nome); // agora é o nome do usuário logado
+        } else {
+        console.log('Documento não encontrado');
+        console.log(user.uid);
+        }
+        } catch (error) {
+        console.error('Erro ao buscar cliente do usuário logado:', error);
+        }
         };
 
         fetchClientes();
@@ -48,15 +56,14 @@ export default function App({navigation}: any) {
   useFocusEffect(
   useCallback(() => {
     const carregar = async () => {
-      setIsLoading(true);
       await carregarClientes();
+      setIsLoading(true);
       const atualizados = atualizarUltimosClientes(); // <- espera os dados carregarem
       setUltimosClientes(atualizados);
-      console.log(ultimosClientes[0].dataUltimoProcedimento)
       setIsLoading(false);
     };
     carregar();
-  }, [carregarClientes, atualizarUltimosClientes])
+  }, [])
 );
 
 

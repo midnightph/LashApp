@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from '../home/styles';
+import styles from '../cliente/clientStyles';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 
 export default function ClienteScreen({navigation} : any) {
@@ -17,7 +17,7 @@ export default function ClienteScreen({navigation} : any) {
 
     const filterClientes = () => {
         return clientes.filter(cliente => {
-            return cliente.nome.toLowerCase().includes(termoBusca.toLowerCase())
+            return cliente.name.toLowerCase().includes(termoBusca.toLowerCase())
         })
     }
     return (
@@ -47,8 +47,8 @@ export default function ClienteScreen({navigation} : any) {
                                     }}>
                                     <Image source={{ uri: item.foto }} style={styles.clienteImage} />
                                     <View style={styles.clienteInfo}>
-                                        <Text style={styles.clienteNome}>{item.nome}</Text>
-                                        <Text style={styles.clienteProcedimento}>{item.procedimento}</Text>
+                                        <Text style={styles.clienteNome}>{item.name}</Text>
+                                        <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc || item.dataNascimento || 'Data não disponível'}</Text>
                                     </View>
                                     <View>

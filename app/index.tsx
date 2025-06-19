@@ -6,8 +6,8 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useClientes } from '../src/screens/functions/ClientesContext'; // importa o contexto
 
 export default function Login({ navigation }: any) {
-  const [email, setEmail] = useState('pedrorodacinski26@gmail.com');
-  const [password, setPassword] = useState('Pedro!2606');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [autoLogin, setAutoLogin] = useState(true);
 
@@ -16,7 +16,7 @@ export default function Login({ navigation }: any) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified && autoLogin) {
-        limparClientes(); // limpa dados do contexto ao detectar novo login
+        limparClientes();
         navigation.reset({
           index: 0,
           routes: [{ name: 'Tabs' }]

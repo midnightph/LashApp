@@ -7,12 +7,22 @@ import { useState } from "react";
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { router } from "expo-router";
 import sair from '../index';
+import { getAuth, signOut } from "firebase/auth";
+import { auth } from "../../src/firebaseConfig";
 
 export default function Profile({navigation}: any) {
     const [whatsapp, setWhatsapp] = useState('');
     const { clientes } = useClientes();
     const handleEnviarLembretes = () => {
         enviarLembretesEmLote(clientes, whatsapp);
+    }
+
+    const signOutApp = async () => {
+        await signOut(auth);
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }]
+        })
     }
 
     return (
@@ -36,7 +46,7 @@ export default function Profile({navigation}: any) {
                 <Text style={styles.insideContainer}>Whatsapp: (11) 99999-9999</Text>
                 <Text style={styles.insideContainer}>Email: WlB0j@example.com</Text>
             </AccordionField>
-            <Button title='Sair' onPress={() => {sair()}} />
+            <Button title='Sair' onPress={() => {signOutApp()}} />
         </View>
         </SafeAreaView>
     )

@@ -3,6 +3,8 @@ import {
   getAuth,
   initializeAuth,
   getReactNativePersistence,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
 } from 'firebase/auth/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -10,6 +12,9 @@ import {
   collection,
   getDocs,
 } from 'firebase/firestore';
+import { signInWithPopup } from 'firebase/auth';
+import { makeRedirectUri } from 'expo-auth-session';
+import Constants from 'expo-constants';
 
 // Configuração
 const firebaseConfig = {

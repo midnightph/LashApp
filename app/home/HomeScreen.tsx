@@ -17,8 +17,7 @@ import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import styles from './styles';
 import { database } from '../../src/firebaseConfig';
-import { getDocs, collection, getDoc, doc } from 'firebase/firestore';
-import { set } from 'date-fns';
+import { getDoc, doc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function App({navigation}: any) {
@@ -43,7 +42,6 @@ export default function App({navigation}: any) {
         setNome(dados.nome); // agora é o nome do usuário logado
         } else {
         console.log('Documento não encontrado');
-        console.log(user.uid);
         }
         } catch (error) {
         console.error('Erro ao buscar cliente do usuário logado:', error);
@@ -90,7 +88,7 @@ export default function App({navigation}: any) {
                             <Text style={styles.subtitle}>Últimos clientes atendidos:</Text>
                         </View>
 
-                        <View style={{ paddingBottom: 20 }}>
+                        {ultimosClientes.length > 0 ?<View style={{ paddingBottom: 20 }}>
                             {isLoading ? <Text style={styles.loadingText}>Carregando clientes...</Text> : <FlatList
                                 horizontal
                                 data={ultimosClientes}
@@ -106,7 +104,7 @@ export default function App({navigation}: any) {
                                         <Text style={styles.clienteNome}>{item.name}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc || 'Data não disponível'}</Text>
-                                        {item.atend ? (
+                                        {item.statusProc ? (
                                             <Text style={styles.clienteAtendimento}>Em atendimento</Text>
                                         ) : (
                                             <Text style={styles.clienteAtendimento}></Text>
@@ -116,7 +114,7 @@ export default function App({navigation}: any) {
                                 contentContainerStyle={styles.listContainer}
                                 showsHorizontalScrollIndicator={false}
                             />}
-                        </View>
+                        </View>: <Text style={styles.nCliente}>Nenhum cliente atendido ainda.</Text>}
 
                         <AddCliente />
                     </View>

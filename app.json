@@ -1,11 +1,12 @@
 {
   "expo": {
     "name": "LashApp",
-    "slug": "LashApp",
+    "slug": "studio-lash",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lashapp",
+    "scheme": "studio-lash",
+    "owner": "midnight2606",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

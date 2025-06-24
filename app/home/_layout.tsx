@@ -5,6 +5,7 @@ import { Tabs } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DetalhesCliente from '../cliente/DetalhesCliente';
 import HomeScreen from './HomeScreen'
+import AddCliente from '@/src/screens/functions/addCliente';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,7 +16,7 @@ export default function Layout() {
               <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="DetalhesCliente" component={DetalhesCliente} />
-                {/* Adicione outras telas conforme necessário */}
+                <Stack.Screen name="AddCliente" component={AddCliente} />
               </Stack.Navigator>
           </ClientesProvider>
       </SafeAreaProvider>

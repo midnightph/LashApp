@@ -1,24 +1,29 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { format, parse } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-
 import { View, Text, Image, StyleSheet, Linking, TouchableOpacity, Alert, Platform, Modal, TextInput, Button, ScrollView } from 'react-native';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { database } from '@/src/firebaseConfig';
+import { getAuth } from 'firebase/auth';
+import { arrayUnion, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import Toast from 'react-native-toast-message';
+
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
   const { atualizarAtendimento } = useClientes();
   const c = cliente.atendimento
-  const [atendimento, setAtendimento] = useState(c);
+  const [atendimento, setAtendimento] = useState(cliente.statusProc ?? false);
   const [valor, setValor] = useState();
   const [observacoes, setObservacoes] = useState('');
   const [atendimentoIniciado, setAtendimentoIniciado] = useState(false);
   const [mapping, setMapping] = useState('');
   const [modalShown, setModalShown] = useState(false);
+  const { carregarClientes, limparClientes } = useClientes();
 
   useEffect(() => {}, []);
 
@@ -39,7 +44,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
   const gerarReciboPDF = async (cliente, valor) => {
     const recibo = gerarRecibo(cliente, valor);
     if (!recibo) return;
-
     const html = `
       <html>
       <head>
@@ -139,6 +143,51 @@ export default function DetalhesCliente({ route, navigation }: any) {
   }
 };
 
+  const atualizarProc = async (proc) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    setAtendimento(proc);
+
+    if (user) {
+      const docRef = doc(database, 'user', user.uid, 'Clientes', cliente.id);
+      await updateDoc(docRef, {
+        statusProc: proc
+      });
+      if(proc == false) {
+        await updateDoc(docRef, {
+          historico: arrayUnion({
+            id: Math.random().toString(36).substr(2, 9),
+            data: new Date().toLocaleDateString('pt-BR'),
+            mapping: mapping,
+            valor: valor,
+            observacoes: observacoes
+          })
+        });
+      }
+    }
+    return await getInfo();
+  }
+
+  const excluirCliente = async () => {
+    const user = getAuth().currentUser;
+    try{
+      await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
+      Toast.show({
+        type: 'info',
+        text1: 'Cliente excluido com sucesso!',
+        position: 'bottom'
+      })
+      limparClientes()
+      await carregarClientes()
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Tabs' }]
+      })
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+    }}
+
   return (
     <SafeAreaProvider style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -169,7 +218,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <ScrollView style={styles.scrollList} showsVerticalScrollIndicator={false}>
             {Array.isArray(cliente.historico) && cliente.historico.map((item) => (
               <View key={item.id} style={styles.itemLista}>
-                <Text style={styles.itemTexto}>{item.proc}</Text>
+                <Text style={styles.itemTexto}>{item.mapping}</Text>
               </View>
             ))}
           </ScrollView>
@@ -185,9 +234,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
           style={[styles.button, { backgroundColor: atendimento ? 'green' : 'red' }]}
           onPress={() => {
             const novoStatus = !atendimento;
-            setAtendimento(novoStatus);
-
-            if(novoStatus) {
+            atualizarProc(novoStatus);
+              if(!atendimento) {
               setModalShown(true);
             }else{
             atualizarAtendimento(cliente.id, novoStatus, new Date(), valor, mapping, observacoes);}
@@ -213,6 +261,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <Text style={styles.buttonText}>Gerar Recibo</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, { backgroundColor: '#4a90e2' }]} onPress={tirarFoto}><Text style={styles.buttonText}>Foto</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#4a90e2' }]} onPress={excluirCliente}><Text style={styles.buttonText}>Excluir cliente</Text></TouchableOpacity>
         </View>
 
         <Modal visible={modalShown} animationType='slide'>
@@ -224,6 +273,10 @@ export default function DetalhesCliente({ route, navigation }: any) {
             <Text>Observação</Text>
             <TextInput placeholder='Observação...' value={observacoes} onChangeText={setObservacoes} />
             <Button title="Enviar" onPress={() => {
+              if(!mapping || !valor) {
+                Alert.alert('Preencha todos os campos!');
+                return;
+              }
               setModalShown(false);
               atualizarAtendimento(cliente.id, atendimento, new Date(), valor, mapping, observacoes);
             }} />

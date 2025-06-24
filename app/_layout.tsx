@@ -10,6 +10,9 @@ import Mapping from "./home/Mapping";
 import ClienteScreen from "./cliente/ClienteScreen";
 import Profile from "./home/Profile";
 import DetalhesCliente from "./cliente/DetalhesCliente";
+import Cadastro from './cadastro'
+import FinalizarCad from './FinalizarCad'
+import Toast from 'react-native-toast-message';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -60,11 +63,15 @@ export default function RootLayout() {
       <ClientesProvider>
           <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Tabs" component={TabNavigator} />
             <Stack.Screen name="DetalhesCliente" component={DetalhesCliente} />
             <Stack.Screen name="Mapping" component={Mapping} />
             <Stack.Screen name='Profile' component={Profile} />
+            <Stack.Screen name='Cadastro' component={Cadastro} />
+            <Stack.Screen name='FinalizarCad' component={FinalizarCad} />
           </Stack.Navigator>
+          <Toast />
       </ClientesProvider>
     </SafeAreaProvider>
   );

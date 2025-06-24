@@ -6,14 +6,18 @@ import styles from './styles';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection } from 'firebase/firestore';
 import { database } from '@/src/firebaseConfig';
+import MaskInput, { Masks } from 'react-native-mask-input';
+import Toast from 'react-native-toast-message';
 
-export default function AddCliente() {
+export default function AddCliente({ navigation }: any) {
   const [showForm, setShowForm] = useState(false);
   const [name, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [mapping, setMapping] = useState('');
   const [dataNasc, setDataNasc] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const { limparClientes, carregarClientes } = useClientes();
+
 
   const { adicionarCliente } = useClientes();
 
@@ -29,15 +33,21 @@ export default function AddCliente() {
       telefone,
       proc: mapping,
       dataNasc: dataNasc.toLocaleDateString('pt-BR'),
+      historico: [],
+      statusProc: false,
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'
     };
-
     const user = getAuth().currentUser;
     if (!user) return;
 
     try {
       await addDoc(collection(database, 'user', user.uid, 'Clientes'), novoCliente);
-      alert('Cliente cadastrado com sucesso!');
+      Toast.show({
+        text1: 'Cliente adicionado com sucesso!',
+        position: 'bottom'
+      })
+      limparClientes()
+      await carregarClientes()
     } catch (error) {
       console.error('Erro ao adicionar cliente:', error);
       return;
@@ -71,13 +81,13 @@ export default function AddCliente() {
           />
 
           <Text style={styles.textInput2}>Telefone</Text>
-          <TextInput
-            placeholder="99 99999-9999"
+          <MaskInput
             value={telefone}
-            onChangeText={setTelefone}
-            keyboardType="numeric"
             style={styles.input}
-            placeholderTextColor="#888"
+            onChangeText={(masked, unmasked) => {
+              setTelefone(unmasked);
+            }}
+            mask={Masks.BRL_PHONE}
           />
 
           <Text style={styles.textInput2}>Mapping preferido</Text>
@@ -93,7 +103,7 @@ export default function AddCliente() {
             onPress={() => setShowDatePicker(true)}
             style={[styles.input, { justifyContent: 'center' }]}
           >
-            <Text style={{ color: '#000' }}>{dataNasc.toLocaleDateString('pt-BR')}</Text>
+            <Text style={[styles.input, { marginLeft: 5 }, { color: '#888' }]}>{dataNasc.toLocaleDateString('pt-BR')}</Text>
           </TouchableOpacity>
 
           {showDatePicker && (

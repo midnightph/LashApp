@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, database } from '../src/firebaseConfig';
@@ -6,8 +6,8 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useClientes } from '../src/screens/functions/ClientesContext'; // importa o contexto
 
 export default function Login({ navigation }: any) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('pedrorodacinski26@gmail.com');
+  const [password, setPassword] = useState('Pedro!2606');
   const [loading, setLoading] = useState(false);
   const [autoLogin, setAutoLogin] = useState(true);
 
@@ -35,12 +35,14 @@ export default function Login({ navigation }: any) {
     try {
       setLoading(true);
       const response = await signInWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(database, 'user', response.user.uid), { email: response.user.email });
+      await setDoc(doc(database, 'user', response.user.uid), { email: response.user.email }, { merge: true });
 
       if (!response.user.emailVerified) {
         alert('Verifique seu email antes de continuar.');
       } else {
-        limparClientes(); // limpa dados do usuário anterior
+        limparClientes();
+        setEmail('');
+        setPassword('');
         navigation.reset({
           index: 0,
           routes: [{ name: 'Tabs' }]
@@ -54,20 +56,7 @@ export default function Login({ navigation }: any) {
   };
 
   const signUp = async () => {
-    if (email === '' || password === '') {
-      alert('Preencha todos os campos!');
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(response.user);
-      alert("Cadastro efetuado com sucesso! Verifique seu email antes de fazer login.");
-    } catch (error) {
-      alert("Não conseguimos efetuar o cadastro: " + error);
-    } finally {
-      setLoading(false);
-    }
+    navigation.navigate('Cadastro');
   };
 
   const sair = async () => {
@@ -75,6 +64,7 @@ export default function Login({ navigation }: any) {
     setAutoLogin(false)
     navigation.reset('Login')
   }
+
 
   return (
     <View style={styles.container}>

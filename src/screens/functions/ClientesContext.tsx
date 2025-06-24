@@ -67,7 +67,7 @@ export function ClientesProvider({ children }) {
                 cliente.id === id
                     ? {
                         ...cliente,
-                        atend: novoStatus,
+                        statusProc: novoStatus,
                         dataUltimoProcedimento: data,
                         valor,
                         procedimento,
@@ -96,19 +96,18 @@ export function ClientesProvider({ children }) {
 
     clientesSnapshot.forEach(doc => {
         const data = doc.data();
+        const { id: _, ...rest } = data;
         clientesDoUsuario.push({ 
             id: doc.id,
-            ...data,
+            ...rest,
             dataNasc: data.dataNasc,
             foto: data.foto || 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'
         });
     });
-
     setClientes(clientesDoUsuario);
 };
 
     const carregarClientes = async () => {
-        if (clientes.length > 0) return; // Evita loop
         await getInfo();
     };
     const limparClientes = () => {

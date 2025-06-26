@@ -103,7 +103,7 @@ export default function App({navigation}: any) {
                                         />
                                         <Text style={styles.clienteNome}>{item.name}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.proc}</Text>
-                                        <Text style={styles.clienteData}>{item.dataNasc || 'Data não disponível'}</Text>
+                                        <Text style={styles.clienteData}>{item.dataNasc.toDate().toLocaleDateString() || 'Data não disponível'}</Text>
                                         {item.statusProc ? (
                                             <Text style={styles.clienteAtendimento}>Em atendimento</Text>
                                         ) : (

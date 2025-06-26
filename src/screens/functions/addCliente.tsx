@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useClientes } from './ClientesContext';
 import styles from './styles';
 import { getAuth } from 'firebase/auth';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { database } from '@/src/firebaseConfig';
 import MaskInput, { Masks } from 'react-native-mask-input';
 import Toast from 'react-native-toast-message';
@@ -32,7 +32,7 @@ export default function AddCliente({ navigation }: any) {
       name,
       telefone,
       proc: mapping,
-      dataNasc: dataNasc.toLocaleDateString('pt-BR'),
+      dataNasc: Timestamp.fromDate(dataNasc),
       historico: [],
       statusProc: false,
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'
@@ -84,6 +84,7 @@ export default function AddCliente({ navigation }: any) {
           <MaskInput
             value={telefone}
             style={styles.input}
+            keyboardType='phone-pad'
             onChangeText={(masked, unmasked) => {
               setTelefone(unmasked);
             }}

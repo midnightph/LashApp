@@ -13,6 +13,7 @@ import DetalhesCliente from "./cliente/DetalhesCliente";
 import Cadastro from './cadastro'
 import FinalizarCad from './FinalizarCad'
 import Toast from 'react-native-toast-message';
+import DetalhesMapping from "./cliente/DetalhesMapping";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -70,6 +71,7 @@ export default function RootLayout() {
             <Stack.Screen name='Profile' component={Profile} />
             <Stack.Screen name='Cadastro' component={Cadastro} />
             <Stack.Screen name='FinalizarCad' component={FinalizarCad} />
+            <Stack.Screen name="DetalhesMapping" component={DetalhesMapping} />
           </Stack.Navigator>
           <Toast />
       </ClientesProvider>

@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { format, parse } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, Linking, TouchableOpacity, Alert, Platform, Modal, TextInput, Button, ScrollView } from 'react-native';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import * as Print from 'expo-print';
@@ -9,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { database } from '@/src/firebaseConfig';
 import { getAuth } from 'firebase/auth';
-import { arrayUnion, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 
 
@@ -111,16 +109,13 @@ export default function DetalhesCliente({ route, navigation }: any) {
   };
 
   function checkFrequencia (cliente) {
-    const agora = new Date();
-    const quatroMesesAtras = new Date();
-    quatroMesesAtras.setMonth(agora.getMonth() - 4);
-    
-    const ocorrencias = cliente.historico.filter(c => {
-      const data = new Date(c.data);
-      return data >= quatroMesesAtras && data <= agora;
-    })
+    const agora = Timestamp.now();
+    const quatroMesesAtras = Timestamp.fromMillis(agora.toMillis() - 4 * 30 * 24 * 60 * 60 * 1000);
+    const datas = cliente.historico.map(item => item.data).sort((a, b) => b.seconds - a.seconds);
+    if (datas.length >= 3 && datas[0].seconds > quatroMesesAtras.seconds) {
+      return true;
+    }
 
-    return ocorrencias.length >= 3
   }
 
   const [imagem, setImagem] = useState(cliente.foto);
@@ -157,10 +152,11 @@ export default function DetalhesCliente({ route, navigation }: any) {
         await updateDoc(docRef, {
           historico: arrayUnion({
             id: Math.random().toString(36).substr(2, 9),
-            data: new Date().toLocaleDateString('pt-BR'),
+            data: Timestamp.now(),
             mapping: mapping,
             valor: valor,
-            observacoes: observacoes
+            observacoes: observacoes || null,
+            foto: "https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445"
           })
         });
       }
@@ -187,6 +183,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
     } catch (error) {
       console.error('Erro ao excluir cliente:', error);
     }}
+
 
   return (
     <SafeAreaProvider style={{ flex: 1 }}>
@@ -218,7 +215,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <ScrollView style={styles.scrollList} showsVerticalScrollIndicator={false}>
             {Array.isArray(cliente.historico) && cliente.historico.map((item) => (
               <View key={item.id} style={styles.itemLista}>
-                <Text style={styles.itemTexto}>{item.mapping}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, })}>
+                  <Text style={styles.itemTexto}>{item.mapping}</Text>
+                </TouchableOpacity>
               </View>
             ))}
           </ScrollView>

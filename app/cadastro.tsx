@@ -2,17 +2,22 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import MaskInput, { Masks } from 'react-native-mask-input';
+import { Timestamp } from 'firebase/firestore';
 
 export default function Cadastro({ navigation }: any) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [dataNasc, setDataNasc] = useState('');
+  const data = Timestamp.fromDate(dataNasc);
+
+  //  REVISAR FUNCIONAMENTO, CONVERSÃO PARA TIMESTAMP NÃO OPERA
+  //  const data = Timestamp.fromDate(dataNasc);
 
   const finalizar = () => {
     if (nome === '' || telefone === '' || dataNasc === '') {
       return alert('Preencha todos os campos!');
     } else {
-      navigation.navigate('FinalizarCad', { nome, telefone, dataNasc });
+      navigation.navigate('FinalizarCad', { nome, telefone, data });
     }
   };
 
@@ -31,6 +36,7 @@ export default function Cadastro({ navigation }: any) {
         <MaskInput
           value={telefone}
           style={styles.input}
+          keyboardType='phone-pad'
           onChangeText={(masked, unmasked) => {
             setTelefone(unmasked);
           }}
@@ -41,8 +47,10 @@ export default function Cadastro({ navigation }: any) {
         <MaskInput
           value={dataNasc}
           style={styles.input}
+          keyboardType='phone-pad'
           onChangeText={(masked, unmasked) => {
-            setDataNasc(unmasked);
+            setDataNasc(masked);
+            console.log(masked);
           }}
           mask={Masks.DATE_DDMMYYYY}
           placeholder="Data de nascimento"

@@ -15,14 +15,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../src/firebaseConfig';
 
 export default function FinalizarCad({ route, navigation }: any) {
-  const { nome, telefone, dataNasc } = route.params;
+  const { nome, telefone, data } = route.params;
   const [email, setEmail] = useState('pedrorodacinski26@gmail.com');
   const [senha, setSenha] = useState('Pedro!2606');
   const [confirmarSenha, setConfirmarSenha] = useState('Pedro!2606');
   const [loading, setLoading] = useState(false);
 
   const signUp = async () => {
-    if (!nome || !telefone || !dataNasc) {
+    if (!nome || !telefone || !data) {
       alert('Dados da tela anterior não recebidos!');
       return;
     }
@@ -43,7 +43,7 @@ export default function FinalizarCad({ route, navigation }: any) {
         nome,
         email,
         telefone,
-        dataNasc,
+        data,
       });
       alert('Cadastro efetuado com sucesso! Cheque seu e-mail antes de fazer o login.');
       navigation.navigate('Login');

@@ -18,6 +18,7 @@ export default function AddCliente({ navigation }: any) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { limparClientes, carregarClientes } = useClientes();
 
+  const data = Timestamp.fromDate(dataNasc);
 
   const { adicionarCliente } = useClientes();
 
@@ -32,7 +33,7 @@ export default function AddCliente({ navigation }: any) {
       name,
       telefone,
       proc: mapping,
-      dataNasc: Timestamp.fromDate(dataNasc),
+      dataNasc: data,
       historico: [],
       statusProc: false,
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445'

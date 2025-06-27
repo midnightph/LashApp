@@ -3,18 +3,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AccordionField from '../../src/screens/functions/accordionField';
 import { StyleSheet } from "react-native";
 import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { router } from "expo-router";
 import sair from '../index';
 import { getAuth, signOut } from "firebase/auth";
-import { auth } from "../../src/firebaseConfig";
+import { auth, database } from "../../src/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Profile({navigation}: any) {
     const [whatsapp, setWhatsapp] = useState('');
     const { clientes } = useClientes();
+    const [nome, setNome] = useState('');
+    const [telefone, setTelefone] = useState('');
     const handleEnviarLembretes = () => {
-        enviarLembretesEmLote(clientes, whatsapp);
+        enviarLembretesEmLote(clientes, telefone);
     }
 
     const signOutApp = async () => {
@@ -24,6 +27,31 @@ export default function Profile({navigation}: any) {
             routes: [{ name: 'Login' }]
         })
     }
+    
+    useEffect(() => {
+        const fetchClientes = async () => {
+
+        try {
+        const user = getAuth().currentUser;
+        if (!user) return;
+
+        const docRef = doc(database, 'user', user.uid);
+        const snapshot = await getDoc(docRef);
+
+        if (snapshot.exists()) {
+        const dados = snapshot.data();
+        setNome(dados.nome);
+        setTelefone(dados.telefone);
+        } else {
+        console.log('Documento não encontrado');
+        }
+        } catch (error) {
+        console.error('Erro ao buscar cliente do usuário logado:', error);
+        }
+        };
+
+        fetchClientes();
+    }, []);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
@@ -31,13 +59,11 @@ export default function Profile({navigation}: any) {
             <Text style={styles.title}>Perfil</Text>
             
             <AccordionField title={'👤 Dados pessoais'}>
-                <Text style={styles.insideContainer}>Nome: João da Silva</Text>
+                <Text style={styles.insideContainer}>Nome: {nome}</Text>
             </AccordionField>
 
             <AccordionField title='📞 Melhore seu atendimento'>
                 <View style={{ flexDirection: 'column' }}>
-                    <Text style={styles.insideContainer}>Seu número de Whatsapp:</Text>
-                    <TextInput placeholder='(11) 99999-9999' style={styles.insideContainer} value={whatsapp} onChangeText={setWhatsapp} keyboardType="phone-pad"/>
                     <Button title='Enviar lembretes' onPress={handleEnviarLembretes} />
                 </View>
             </AccordionField>

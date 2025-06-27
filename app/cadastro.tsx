@@ -8,13 +8,17 @@ export default function Cadastro({ navigation }: any) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [dataNasc, setDataNasc] = useState('');
-  const data = Timestamp.fromDate(dataNasc);
 
-  //  REVISAR FUNCIONAMENTO, CONVERSÃO PARA TIMESTAMP NÃO OPERA
-  //  const data = Timestamp.fromDate(dataNasc);
+  let data: any;
+
+if (dataNasc.length === 10) {
+  const partes = dataNasc.split('/');
+  const dataConvertida = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
+  data = Timestamp.fromDate(dataConvertida);
+}
 
   const finalizar = () => {
-    if (nome === '' || telefone === '' || dataNasc === '') {
+    if (nome === '' || telefone === '' || data === '') {
       return alert('Preencha todos os campos!');
     } else {
       navigation.navigate('FinalizarCad', { nome, telefone, data });
@@ -50,7 +54,6 @@ export default function Cadastro({ navigation }: any) {
           keyboardType='phone-pad'
           onChangeText={(masked, unmasked) => {
             setDataNasc(masked);
-            console.log(masked);
           }}
           mask={Masks.DATE_DDMMYYYY}
           placeholder="Data de nascimento"

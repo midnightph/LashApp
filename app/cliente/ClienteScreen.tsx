@@ -8,6 +8,7 @@ export default function ClienteScreen({navigation} : any) {
 
     const [termoBusca, setTermoBusca] = useState('');
     const [nome, setNome] = useState('');
+    let dataNasc: any;
 
     const { clientes, carregarClientes } = useClientes();
     
@@ -18,6 +19,7 @@ export default function ClienteScreen({navigation} : any) {
     const filterClientes = () => {
         return clientes.filter(cliente => {
             return cliente.name.toLowerCase().includes(termoBusca.toLowerCase())
+            
         })
     }
     return (
@@ -49,7 +51,7 @@ export default function ClienteScreen({navigation} : any) {
                                     <View style={styles.clienteInfo}>
                                         <Text style={styles.clienteNome}>{item.name}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.proc}</Text>
-                                        <Text style={styles.clienteData}>{item.dataNasc || item.dataNascimento || 'Data não disponível'}</Text>
+                                        <Text style={styles.clienteData}>{item.dataNasc.toDate().toLocaleDateString('pt-BR')}</Text>
                                     </View>
                                     <View>
                                         {item.atendimento ? <Text style={styles.clienteAtendimento}>Em atendimento</Text> : <Text style={styles.clienteAtendimento}></Text>}

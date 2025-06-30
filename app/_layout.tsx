@@ -1,10 +1,8 @@
-import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ClientesProvider } from '../src/screens/functions/ClientesContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Login from './index';
-import { Ionicons } from 'react-native-vector-icons';
 import HomeScreen from './home/HomeScreen';
 import Mapping from "./home/Mapping";
 import ClienteScreen from "./cliente/ClienteScreen";
@@ -14,51 +12,69 @@ import Cadastro from './cadastro'
 import FinalizarCad from './FinalizarCad'
 import Toast from 'react-native-toast-message';
 import DetalhesMapping from "./cliente/DetalhesMapping";
-
 const Stack = createNativeStackNavigator();
+import * as NavigationBar from 'expo-navigation-bar';
 const Tab = createBottomTabNavigator();
+
+import { Home, Users, User } from 'lucide-react-native';
+import { View } from 'react-native';
+import { useEffect } from "react";
 
 function TabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarShowLabel: false, // Ocultar o texto das tabs
-        headerShown: false, // Ocultar o header para não duplicar com o header das screens
-      }}
+      screenOptions={({ route }) => ({
+        tabBarShowLabel: false,
+        headerShown: false,
+        tabBarActiveTintColor: '#FF69B4',
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: -5,
+          left: 20,
+          right: 20,
+          backgroundColor: '#fff',
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
+          height: 60,
+          paddingTop: 10,
+          shadowColor: '#000',
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 10,
+          borderTopWidth: 0,
+        },
+        tabBarIcon: ({ color, size, focused }) => {
+          const iconSize = focused ? size + 4 : size;
+
+          let Icon;
+          if (route.name === 'Home') Icon = Home;
+          else if (route.name === 'ClienteScreen') Icon = Users;
+          else if (route.name === 'Profile') Icon = User;
+
+          return (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon color={color} size={iconSize} />
+            </View>
+          );
+        },
+      })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='home' size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="ClienteScreen" 
-        component={ClienteScreen} 
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='person' size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={Profile} 
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name='person' color={color} size={size} />
-          ),
-        }}
-      />
-      {/* Não incluímos 'DetalhesCliente' nas tabs */}
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="ClienteScreen" component={ClienteScreen} />
+      <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
 }
 
+
+
+
 export default function RootLayout() {
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync('#FF69B4'); // cor da barra
+    NavigationBar.setButtonStyleAsync('light'); // cor dos botões: 'light' ou 'dark'
+  }, []);
   return (
     <SafeAreaProvider>
       <ClientesProvider>
@@ -78,3 +94,4 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+

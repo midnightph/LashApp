@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
         padding: 15,
         width: 200,
         height: 250,
-        marginBottom: 10,
+        marginBottom: 5,
         marginRight: 15,
         alignItems: 'center',
 
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 6,
+        shadowRadius: 3,
 
         // Sombra Android
-        elevation: 6,
+        elevation: 3,
     },
     clientImage: {
         width: 120,

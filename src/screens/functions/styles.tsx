@@ -31,8 +31,6 @@ const styles = StyleSheet.create({
         fontWeight: 600,
     },
     formContainer: {
-        marginLeft: 15,
-        marginRight: 15,
         marginTop: 15,
         borderRadius: 20,
         backgroundColor: 'white',

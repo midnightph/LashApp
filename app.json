@@ -13,11 +13,18 @@
       "supportsTablet": true
     },
     "android": {
+      "navigationBar": {
+      "visible": true,
+      "backgroundColor": "#FF69B4",
+      "barStyle": "light-content",
+      "barStyleOnEdge": "light-content",
+      "behavior": "normal"
+    },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "package": "com.anonymous.LashApp"
     },
     "web": {

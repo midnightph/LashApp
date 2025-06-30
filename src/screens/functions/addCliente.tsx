@@ -8,6 +8,8 @@ import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { database } from '@/src/firebaseConfig';
 import MaskInput, { Masks } from 'react-native-mask-input';
 import Toast from 'react-native-toast-message';
+import FormButton from '@/src/FormButton';
+import { AnimatePresence, MotiView } from 'moti';
 
 export default function AddCliente({ navigation }: any) {
   const [showForm, setShowForm] = useState(false);
@@ -17,6 +19,9 @@ export default function AddCliente({ navigation }: any) {
   const [dataNasc, setDataNasc] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { limparClientes, carregarClientes } = useClientes();
+  const telefoneRef = React.useRef<TextInput>(null);
+  const mappingRef = React.useRef<TextInput>(null);
+  const dataNascRef = React.useRef<TextInput>(null);
 
   const data = Timestamp.fromDate(dataNasc);
 
@@ -63,22 +68,23 @@ export default function AddCliente({ navigation }: any) {
 
   return (
     <View style={styles.boxAddCliente}>
-      <TouchableOpacity
-        style={styles.bigButton}
-        onPress={() => setShowForm(!showForm)}
-      >
-        <Text style={styles.bigButtonText}>+ Novo Cliente</Text>
-      </TouchableOpacity>
-
+      <FormButton title="Adicionar cliente" onPress={() => setShowForm(!showForm)} secondary/>
+      <AnimatePresence>
       {showForm && (
-        <View style={styles.formContainer}>
+        <MotiView style={styles.formContainer}
+          from={{ opacity: 0, translateY: 20 }}
+          exit={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 100, type: 'timing' }}
+        >
           <Text style={styles.textInput}>Nome da cliente</Text>
           <TextInput
-            placeholder="Digite aqui"
+            placeholder="Nome"
             value={name}
             onChangeText={setNome}
             style={styles.input}
             placeholderTextColor="#888"
+            onSubmitEditing={() => setTimeout(() => telefoneRef.current?.focus(), 100)}
           />
 
           <Text style={styles.textInput2}>Telefone</Text>
@@ -90,6 +96,8 @@ export default function AddCliente({ navigation }: any) {
               setTelefone(unmasked);
             }}
             mask={Masks.BRL_PHONE}
+            ref={telefoneRef}
+            onSubmitEditing={() => setTimeout(() => mappingRef.current?.focus(), 100)}
           />
 
           <Text style={styles.textInput2}>Mapping preferido</Text>
@@ -98,6 +106,9 @@ export default function AddCliente({ navigation }: any) {
             value={mapping}
             onChangeText={setMapping}
             style={styles.input}
+            ref={mappingRef}
+            placeholderTextColor="#888"
+            onSubmitEditing={() => setTimeout(() => dataNascRef.current?.focus(), 100)}
           />
 
           <Text style={styles.textInput2}>Data de nascimento</Text>
@@ -120,15 +131,13 @@ export default function AddCliente({ navigation }: any) {
               }}
             />
           )}
-
-          <TouchableOpacity
-            style={styles.sendForm}
-            onPress={handleSendForm}
-          >
-            <Text>Enviar</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={{paddingHorizontal: 20}}>
+          <FormButton title="Enviar" onPress={handleSendForm} secondary/></View>
+        </MotiView>
+        
       )}
+      </AnimatePresence>
     </View>
+    
   );
 }

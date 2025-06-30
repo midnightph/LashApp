@@ -9,6 +9,8 @@ import { database } from '@/src/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
+import { MotiSafeAreaView } from 'moti';
+import FormButton from '@/src/FormButton';
 
 
 export default function DetalhesCliente({ route, navigation }: any) {
@@ -186,7 +188,10 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
 
   return (
-    <SafeAreaProvider style={{ flex: 1 }}>
+    <MotiSafeAreaView style={{ flex: 1 }} 
+    from={{ opacity: 0, translateY: 30 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 500 }}>
       <View style={styles.container}>
         <View style={styles.header}>
         <Image source={{ uri: imagem }} style={styles.image} />
@@ -243,9 +248,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <Text style={styles.buttonText}>{!atendimento ? 'Fora de atendimento' : 'Em atendimento'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#4a90e2' }]}
-          onPress={() => {
+        <FormButton title='Gerar recibo' onPress={() => {
             if (!atendimento) {
               if (!valor || isNaN(parseFloat(valor))) {
                 Alert.alert('Erro', 'Preencha um valor válido antes de gerar o recibo');
@@ -255,12 +258,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
             } else {
               Alert.alert('Atenção', 'O cliente está em atendimento, impossível gerar recibo!');
             }
-          }}
-        >
-          <Text style={styles.buttonText}>Gerar Recibo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#4a90e2' }]} onPress={tirarFoto}><Text style={styles.buttonText}>Foto</Text></TouchableOpacity>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#4a90e2' }]} onPress={excluirCliente}><Text style={styles.buttonText}>Excluir cliente</Text></TouchableOpacity>
+          }} secondary />
+        <FormButton title='Tirar foto' onPress={tirarFoto} secondary />
+        <FormButton title='Excluir cliente' onPress={excluirCliente} />
         </View>
 
         <Modal visible={modalShown} animationType='slide'>
@@ -282,7 +282,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
           </View>
         </Modal>
       </View>
-    </SafeAreaProvider>
+    </MotiSafeAreaView>
   );
 }
 
@@ -348,12 +348,5 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
-    gap: 10
   }
 });

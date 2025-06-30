@@ -36,7 +36,7 @@ function TabNavigator() {
           backgroundColor: '#fff',
           borderTopLeftRadius: 25,
           borderTopRightRadius: 25,
-          height: 60,
+          height: 70,
           paddingTop: 10,
           shadowColor: '#000',
           shadowOpacity: 0.1,
@@ -71,10 +71,6 @@ function TabNavigator() {
 
 
 export default function RootLayout() {
-  useEffect(() => {
-    NavigationBar.setBackgroundColorAsync('#FF69B4'); // cor da barra
-    NavigationBar.setButtonStyleAsync('light'); // cor dos botões: 'light' ou 'dark'
-  }, []);
   return (
     <SafeAreaProvider>
       <ClientesProvider>

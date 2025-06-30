@@ -38,6 +38,8 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         marginRight: 15,
         alignItems: 'center',
+        borderColor: '#E8B4B4',  // Rosa poá
+        borderWidth: 1,
 
         // Sombra iOS
         shadowColor: '#000',

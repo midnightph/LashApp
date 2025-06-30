@@ -6,6 +6,7 @@ export default function FormButton({ title, onPress, secondary = false }: {
   title: string;
   onPress: () => void;
   secondary?: boolean;
+  maxWidth?: number;
 }) {
   return (
     <TouchableOpacity

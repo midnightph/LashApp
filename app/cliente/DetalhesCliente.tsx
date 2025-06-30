@@ -5,10 +5,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function DetalhesCliente({ route, navigation }: any) {
@@ -101,9 +102,30 @@ export default function DetalhesCliente({ route, navigation }: any) {
       console.error('Erro ao excluir cliente:', error);
     }}
 
+    useEffect(() => {
+      const carregarDadosPendentes = async () => {
+        const dadosSalvos = await AsyncStorage.getItem(`pendente_${cliente.id}`);
+        if (dadosSalvos) {
+          const { mapping, valor, observacoes } = JSON.parse(dadosSalvos);
+          setMapping(mapping);
+          setValor(valor);
+          setObservacoes(observacoes);
+        }
+      };
+      carregarDadosPendentes();
+    }, []);
+
+    useEffect(() => {
+      AsyncStorage.setItem(
+        `pendente_${cliente.id}`,
+        JSON.stringify({ mapping, valor, observacoes })
+      );
+    }, [mapping, valor, observacoes]);
+    
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#FFF2F5', paddingHorizontal: 20}}>
-      <View style={{alignItems: 'center', marginTop: 20, display: 'flex', flexDirection: 'row', gap: 20}}>
+      <View style={{alignItems: 'center', marginTop: 20, display: 'flex', flexDirection: 'row', gap: 20, justifyContent: 'center'}}>
         <Image source={{uri: cliente.foto}} style={styles.image}/>
         <View style={{gap: 10, alignItems: 'center'}}>
           <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold'}}>{cliente.name}</Text>
@@ -112,30 +134,44 @@ export default function DetalhesCliente({ route, navigation }: any) {
           }}>
             <Text style={{fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold'}}>{cliente.telefone}</Text>
           </TouchableOpacity>
+          {atendimento ? (
+            <Text style={{fontSize: 10, color: colors.success, fontWeight: 'bold'}}>Atendimento em andamento</Text>
+          ): <Text style={{fontSize: 10, color: colors.success, fontWeight: 'bold'}}></Text>}
         </View>
       </View>
 
       <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20}}> 
-        <Text style={{fontSize: 18, color: colors.title, fontWeight: 'bold'}}>Ultimos atendimentos:</Text>
-        <View style={{borderTopColor: colors.secondary, borderTopWidth: 1}}>
+        <Text style={{fontSize: 18, color: colors.title, fontWeight: 'bold', paddingBottom: 10}}>Ultimos atendimentos:</Text>
+        <ScrollView style={{borderTopColor: colors.secondary, borderTopWidth: 1, maxHeight: 300}}
+        showsVerticalScrollIndicator={true} horizontal={false}
+        >
           {cliente.historico.map((item, index) => (
-            <View key={index} style={{borderBottomColor: colors.secondary, borderBottomWidth: 1, padding: 10}}>
-              <Text>Mapping: {item.mapping}</Text>
-              <Text>Valor: {item.valor}</Text>
-              <Text>Observacoes: {item.observacoes}</Text>
-              <Text>Data: {item.data.toDate().toLocaleDateString()}</Text>
-            </View>
+            <TouchableOpacity onPress={() => {
+              navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id });
+            }} 
+            key={index} style={{borderBottomColor: colors.secondary, borderBottomWidth: 1, padding: 10}}>
+              <Text style={{color: colors.title, fontWeight: 'bold', fontSize: 16}}>Mapping: {item.mapping}</Text>
+              <Text style={{color: colors.secondary}}>Valor: {item.valor}</Text>
+              <Text style={{color: colors.secondary}}>Data: {item.data.toDate().toLocaleDateString()}</Text>
+            </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
 
-      <FormButton title="Abrir atendimento" onPress={() => {
-        atualizarProc(!atendimento)
-        console.log(atendimento)
-        if(atendimento) {
-          setModalShown(true);
-        }
-      }}/>
+      <View style={{display: 'flex', flexDirection: 'row', gap: 10, marginTop: 20}}>
+      <FormButton
+  title={atendimento ? 'Encerrar atendimento' : 'Iniciar atendimento'}
+  onPress={() => {
+    const novoStatus = !atendimento;
+    if (novoStatus) {
+      setModalShown(true); // abrir modal ao iniciar
+    }
+    setAtendimento(novoStatus); // atualiza localmente
+    atualizarProc(novoStatus);
+  }}
+/>
+      <FormButton title="Excluir cliente" onPress={excluirCliente} secondary={true}/>
+      </View>
 
       {modalShown && (
         <Modal
@@ -146,10 +182,25 @@ export default function DetalhesCliente({ route, navigation }: any) {
             setModalShown(false);
           }}
         >
-          <View style={styles.modalContainer}>
+          <View style={{padding: 20, flex: 1, justifyContent: 'center'}}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Atendimento fechado!</Text>
-              <FormButton title="Fechar" onPress={() => setModalShown(false)}/>
+              <Text style={styles.modalText}>Preencha as informações</Text>
+              <TextInput placeholder='Mapping' value={mapping} onChangeText={setMapping} style={styles.modalInput}/>
+              <TextInput placeholder='Valor' value={valor} onChangeText={setValor} style={styles.modalInput} keyboardType="numeric"/>
+              <TextInput placeholder='Observacoes' value={observacoes} onChangeText={setObservacoes} style={styles.modalInput}/>
+              <FormButton
+                title="Salvar atendimento"
+                onPress={() => {
+                  if (!mapping || !valor) {
+                    Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
+                    return;
+                  }
+                
+                  setModalShown(false);
+                  atualizarProc(true);
+                  AsyncStorage.removeItem(`pendente_${cliente.id}`); // limpa os dados temporários
+                }}                
+              />
             </View>
           </View>
         </Modal>

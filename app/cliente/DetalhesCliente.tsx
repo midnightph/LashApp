@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Linking, TouchableOpacity, Alert, Platform, Modal, TextInput, Button, ScrollView } from 'react-native';
-import { useClientes } from '../../src/screens/functions/ClientesContext';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import colors from '@/src/colors';
 import { database } from '@/src/firebaseConfig';
+import FormButton from '@/src/FormButton';
+import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { MotiSafeAreaView } from 'moti';
-import FormButton from '@/src/FormButton';
+import { useClientes } from '../../src/screens/functions/ClientesContext';
 
 
 export default function DetalhesCliente({ route, navigation }: any) {
@@ -26,89 +24,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
   const { carregarClientes, limparClientes } = useClientes();
 
   useEffect(() => {}, []);
-
-  const gerarRecibo = (cliente, valor) => {
-    if (cliente.atend) {
-      Alert.alert('Atenção', 'O cliente está em atendimento, impossível gerar recibo!');
-      return null;
-    }
-    return {
-      nome: cliente.name,
-      procedimento: cliente.proc,
-      data: new Date().toLocaleDateString(),
-      valor: `R$ ${valor.toFixed(2)}`,
-      id: cliente.id,
-    };
-  };
-
-  const gerarReciboPDF = async (cliente, valor) => {
-    const recibo = gerarRecibo(cliente, valor);
-    if (!recibo) return;
-    const html = `
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 40px;
-            background-color: #f9f9f9;
-          }
-          .recibo-container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border: 1px solid #ddd;
-          }
-          h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #f0c0d0;
-            padding-bottom: 10px;
-          }
-          p {
-            font-size: 18px;
-            margin: 15px 0;
-            color: #444;
-          }
-          .info-label {
-            font-weight: bold;
-            color: #111;
-          }
-          .assinatura {
-            margin-top: 50px;
-            text-align: right;
-            font-style: italic;
-            color: #666;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="recibo-container">
-          <h1>Recibo de Pagamento</h1>
-          <p><span class="info-label">Nome:</span> ${recibo.nome}</p>
-          <p><span class="info-label">Procedimento:</span> ${recibo.procedimento}</p>
-          <p><span class="info-label">Data:</span> ${recibo.data}</p>
-          <p><span class="info-label">Valor:</span> ${recibo.valor}</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    try {
-      const { uri } = await Print.printToFileAsync({ html });
-      if (Platform.OS === 'ios') {
-        Alert.alert('Recibo gerado', `Recibo salvo em:\n${uri}`);
-      }
-      await Sharing.shareAsync(uri);
-    } catch (error) {
-      Alert.alert('Erro', 'Erro ao gerar ou compartilhar o PDF');
-      console.error(error);
-    }
-  };
 
   function checkFrequencia (cliente) {
     const agora = Timestamp.now();
@@ -186,167 +101,65 @@ export default function DetalhesCliente({ route, navigation }: any) {
       console.error('Erro ao excluir cliente:', error);
     }}
 
-
   return (
-    <MotiSafeAreaView style={{ flex: 1 }} 
-    from={{ opacity: 0, translateY: 30 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 500 }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-        <Image source={{ uri: imagem }} style={styles.image} />
-
-        {checkFrequencia(cliente) ? 
-        <View style={{flexDirection: 'column', alignItems: 'center'}}>
-        <Text style={[styles.nome, {color: '#C28840', fontWeight: 'bold'}]}>{cliente.name}</Text> 
-        <Text>Cliente fiel</Text>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#FFF2F5', paddingHorizontal: 20}}>
+      <View style={{alignItems: 'center', marginTop: 20, display: 'flex', flexDirection: 'row', gap: 20}}>
+        <Image source={{uri: cliente.foto}} style={styles.image}/>
+        <View style={{gap: 10, alignItems: 'center'}}>
+          <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold'}}>{cliente.name}</Text>
+          <TouchableOpacity onPress={() => {
+            Linking.openURL(`https://wa.me/${cliente.telefone}`);
+          }}>
+            <Text style={{fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold'}}>{cliente.telefone}</Text>
+          </TouchableOpacity>
         </View>
-        : <Text style={styles.nome}>{cliente.name}</Text>}
+      </View>
 
+      <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20}}> 
+        <Text style={{fontSize: 18, color: colors.title, fontWeight: 'bold'}}>Ultimos atendimentos:</Text>
+        <View style={{borderTopColor: colors.secondary, borderTopWidth: 1}}>
+          {cliente.historico.map((item, index) => (
+            <View key={index} style={{borderBottomColor: colors.secondary, borderBottomWidth: 1, padding: 10}}>
+              <Text>Mapping: {item.mapping}</Text>
+              <Text>Valor: {item.valor}</Text>
+              <Text>Observacoes: {item.observacoes}</Text>
+              <Text>Data: {item.data.toDate().toLocaleDateString()}</Text>
+            </View>
+          ))}
         </View>
-        <View style={styles.info}>
-        <Text style={styles.texto}>Procedimento: {cliente.proc}</Text>
-        
-        <Text
-          style={[styles.texto, styles.telefone]}
-          onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}
-        >
-          Telefone: {cliente.telefone}
-        </Text>
-        </View>
+      </View>
 
-        <View style={styles.list}>
-          <Text style={styles.tituloList}>Últimos atendimentos:</Text>
-          <ScrollView style={styles.scrollList} showsVerticalScrollIndicator={false}>
-            {Array.isArray(cliente.historico) && cliente.historico.map((item) => (
-              <View key={item.id} style={styles.itemLista}>
-                <TouchableOpacity onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, })}>
-                  <Text style={styles.itemTexto}>{item.mapping}</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
+      <FormButton title="Abrir atendimento" onPress={() => {
+        atualizarProc(!atendimento)
+        console.log(atendimento)
+        if(atendimento) {
+          setModalShown(true);
+        }
+      }}/>
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Mapping', { cliente })}>
-          <Text>AI para mapping</Text>
-        </TouchableOpacity>
-
-
-        <View style={styles.inputContainer}>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: atendimento ? 'green' : 'red' }]}
-          onPress={() => {
-            const novoStatus = !atendimento;
-            atualizarProc(novoStatus);
-              if(!atendimento) {
-              setModalShown(true);
-            }else{
-            atualizarAtendimento(cliente.id, novoStatus, new Date(), valor, mapping, observacoes);}
+      {modalShown && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalShown}
+          onRequestClose={() => {
+            setModalShown(false);
           }}
         >
-          <Text style={styles.buttonText}>{!atendimento ? 'Fora de atendimento' : 'Em atendimento'}</Text>
-        </TouchableOpacity>
-
-        <FormButton title='Gerar recibo' onPress={() => {
-            if (!atendimento) {
-              if (!valor || isNaN(parseFloat(valor))) {
-                Alert.alert('Erro', 'Preencha um valor válido antes de gerar o recibo');
-                return;
-              }
-              gerarReciboPDF(cliente, parseFloat(valor));
-            } else {
-              Alert.alert('Atenção', 'O cliente está em atendimento, impossível gerar recibo!');
-            }
-          }} secondary />
-        <FormButton title='Tirar foto' onPress={tirarFoto} secondary />
-        <FormButton title='Excluir cliente' onPress={excluirCliente} />
-        </View>
-
-        <Modal visible={modalShown} animationType='slide'>
           <View style={styles.modalContainer}>
-            <Text>Mapping: </Text>
-            <TextInput placeholder='Gatinho...' value={mapping} onChangeText={setMapping} />
-            <Text>Valor</Text>
-            <TextInput placeholder='Ex: R$ 100' value={valor} onChangeText={setValor} keyboardType='numeric' />
-            <Text>Observação</Text>
-            <TextInput placeholder='Observação...' value={observacoes} onChangeText={setObservacoes} />
-            <Button title="Enviar" onPress={() => {
-              if(!mapping || !valor) {
-                Alert.alert('Preencha todos os campos!');
-                return;
-              }
-              setModalShown(false);
-              atualizarAtendimento(cliente.id, atendimento, new Date(), valor, mapping, observacoes);
-            }} />
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Atendimento fechado!</Text>
+              <FormButton title="Fechar" onPress={() => setModalShown(false)}/>
+            </View>
           </View>
         </Modal>
-      </View>
-    </MotiSafeAreaView>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#FFF2F5' },
-  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 20 },
-  nome: { fontSize: 24, fontWeight: 'bold' },
-  texto: { fontSize: 18, marginTop: 10 },
-  telefone: { color: 'blue', textDecorationLine: 'underline', marginTop: 10 },
-  button: {
-    padding: 12,
-    borderRadius: 20,
-    marginTop: 20,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
-    marginTop: 25,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  list: {
-    height: '32%',
-    width: '100%',
-    marginTop: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    elevation: 3,
-  },
-  scrollList: {
-    maxHeight: '100%',
-  },
-  tituloList: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  itemLista: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  itemTexto: {
-    fontSize: 16,
-  },
-  itemData: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  info: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  }
+  container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#FFF2F5'},
+  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5, borderWidth: 3, borderColor: colors.title},
+  nome: { fontSize: 24, fontWeight: 'bold' }
 });

@@ -49,7 +49,7 @@ export default function ClienteScreen({navigation} : any) {
                                     }}>
                                     <Image source={{ uri: item.foto }} style={styles.clienteImage} />
                                     <View style={styles.clienteInfo}>
-                                        <Text style={styles.clienteNome}>{item.name}</Text>
+                                        <Text style={[styles.clienteNome, { maxWidth: 100}]}>{item.name}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc.toDate().toLocaleDateString('pt-BR')}</Text>
                                     </View>

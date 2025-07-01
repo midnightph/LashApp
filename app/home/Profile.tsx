@@ -1,11 +1,11 @@
-import { Button, Text, TextInput, View } from "react-native";
+import { Button, Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AccordionField from '../../src/screens/functions/accordionField';
 import { StyleSheet } from "react-native";
 import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
 import { useEffect, useState } from "react";
 import { useClientes } from '../../src/screens/functions/ClientesContext';
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import sair from '../index';
 import { getAuth, signOut } from "firebase/auth";
 import { auth, database } from "../../src/firebaseConfig";
@@ -69,8 +69,12 @@ export default function Profile({navigation}: any) {
             </AccordionField>
 
             <AccordionField title='📱 Suporte'>
-                <Text style={styles.insideContainer}>Whatsapp: (11) 99999-9999</Text>
-                <Text style={styles.insideContainer}>Email: WlB0j@example.com</Text>
+                <TouchableOpacity onPress={() => {Linking.openURL('https://wa.me/41998780288?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20atendimento')}}>
+                <Text style={[styles.insideContainer, { color: '#000', textDecorationLine: 'underline' }]}>Whatsapp: (41) 99878-0288</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {Linking.openURL('mailto:pedrorodacinski26@gmail.com')}}>
+                <Text style={[styles.insideContainer, { color: '#000', textDecorationLine: 'underline' }]}>Email: pedrorodacinski26@gmail.com</Text>
+                </TouchableOpacity>
             </AccordionField>
             <Button title='Sair' onPress={() => {signOutApp()}} />
         </View>

@@ -155,7 +155,7 @@ export default function App({ navigation }: any) {
               navigation.navigate('DetalhesCliente', { cliente: item })
             }>
             <Image source={{ uri: item.foto }} style={styles.clientImage} />
-            <Text style={styles.clienteNome}>{item.name}</Text>
+            <Text style={[styles.clienteNome]}>{item.name}</Text>
             <Text style={styles.clienteProcedimento}>{item.proc}</Text>
             <Text style={styles.clienteData}>
               {item.dataNasc.toDate().toLocaleDateString()}

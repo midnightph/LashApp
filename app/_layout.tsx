@@ -30,7 +30,7 @@ function TabNavigator() {
         tabBarInactiveTintColor: '#999',
         tabBarStyle: {
           position: 'absolute',
-          bottom: -5,
+          bottom: -10,
           left: 20,
           right: 20,
           backgroundColor: '#fff',
@@ -71,6 +71,10 @@ function TabNavigator() {
 
 
 export default function RootLayout() {
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync('#FF69B4'); // cor da barra
+    NavigationBar.setButtonStyleAsync('light'); // cor dos botões: 'light' ou 'dark'
+  }, []);
   return (
     <SafeAreaProvider>
       <ClientesProvider>

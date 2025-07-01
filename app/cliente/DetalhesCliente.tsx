@@ -4,13 +4,14 @@ import FormButton from '@/src/FormButton';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { gerarRecibo, gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
+import { MotiView } from 'moti';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -123,12 +124,22 @@ export default function DetalhesCliente({ route, navigation }: any) {
     }, [mapping, valor, observacoes]);
     
 
+  const [inputFocused, setInputFocused] = useState(false);
+  const [inputFocused2, setInputFocused2] = useState(false);
+  const [inputFocused3, setInputFocused3] = useState(false);
+
+  const valorRef = useRef<TextInput>(null);
+  const observacoesRef = useRef<TextInput>(null);
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#FFF2F5', paddingHorizontal: 20}}>
-      <View style={{alignItems: 'center', marginTop: 20, display: 'flex', flexDirection: 'row', gap: 20, justifyContent: 'center'}}>
+      <MotiView style={{alignItems: 'center', marginTop: 20, display: 'flex', flexDirection: 'row', gap: 20, justifyContent: 'center'}} 
+      from={{opacity: 0, scale: 0.5, translateY: 50}}
+      animate={{opacity: 1, scale: 1, translateY: 0}}
+      transition={{type: 'timing', duration: 500}}>
         <Image source={{uri: cliente.foto}} style={styles.image}/>
         <View style={{gap: 10, alignItems: 'center'}}>
-          <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold'}}>{cliente.name}</Text>
+          <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150}}>{cliente.name}</Text>
           <TouchableOpacity onPress={() => {
             Linking.openURL(`https://wa.me/${cliente.telefone}`);
           }}>
@@ -138,9 +149,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
             <Text style={{fontSize: 10, color: colors.success, fontWeight: 'bold'}}>Atendimento em andamento</Text>
           ): <Text style={{fontSize: 10, color: colors.success, fontWeight: 'bold'}}></Text>}
         </View>
-      </View>
+      </MotiView>
 
-      <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20}}> 
+      <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20, borderColor: colors.secondary, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 }, elevation: 3}}> 
         <Text style={{fontSize: 18, color: colors.title, fontWeight: 'bold', paddingBottom: 10}}>Ultimos atendimentos:</Text>
         <ScrollView style={{borderTopColor: colors.secondary, borderTopWidth: 1, maxHeight: 300}}
         showsVerticalScrollIndicator={true} horizontal={false}
@@ -158,7 +169,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
         </ScrollView>
       </View>
 
-      <View style={{display: 'flex', flexDirection: 'row', gap: 10, marginTop: 20}}>
+      <View style={{display: 'flex', flexDirection: 'row', gap: 10, marginTop: 20, justifyContent: 'center'}}>
       <FormButton
   title={atendimento ? 'Encerrar atendimento' : 'Iniciar atendimento'}
   onPress={() => {
@@ -169,9 +180,16 @@ export default function DetalhesCliente({ route, navigation }: any) {
     setAtendimento(novoStatus); // atualiza localmente
     atualizarProc(novoStatus);
   }}
+  secondary={!atendimento}
+  maxWidth={170}
 />
-      <FormButton title="Excluir cliente" onPress={excluirCliente} secondary={true}/>
+      <FormButton title="Excluir cliente" onPress={excluirCliente} secondary={true} maxWidth={170}/>
       </View>
+      <View style={{display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center'}}>
+        <FormButton title="Tirar foto" onPress={tirarFoto} secondary={true} maxWidth={170}/>
+        <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente, valor)} secondary={true} maxWidth={170}/>
+      </View>
+      <FormButton title="AI" onPress={() => navigation.navigate('AI', {clienteId: cliente.id})} secondary={false}/>
 
       {modalShown && (
         <Modal
@@ -182,12 +200,43 @@ export default function DetalhesCliente({ route, navigation }: any) {
             setModalShown(false);
           }}
         >
-          <View style={{padding: 20, flex: 1, justifyContent: 'center'}}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Preencha as informações</Text>
-              <TextInput placeholder='Mapping' value={mapping} onChangeText={setMapping} style={styles.modalInput}/>
-              <TextInput placeholder='Valor' value={valor} onChangeText={setValor} style={styles.modalInput} keyboardType="numeric"/>
-              <TextInput placeholder='Observacoes' value={observacoes} onChangeText={setObservacoes} style={styles.modalInput}/>
+          <View style={{padding: 20, flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
+            <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, borderWidth: 1, borderColor: colors.secondary, gap: 10}}>
+              <Text style={{fontSize: 18, color: colors.title}}>Preencha as informações:</Text>
+              <TextInput placeholder='Mapping' 
+              value={mapping} 
+              onChangeText={setMapping} 
+              style={[styles.input, inputFocused && styles.inputFocused]} 
+              onFocus={() => setInputFocused(true)} 
+              onBlur={() => setInputFocused(false)}
+              onSubmitEditing={() => setTimeout(() => valorRef.current?.focus(), 100)}
+              />
+              <TextInput placeholder='Valor' 
+              value={valor} 
+              onChangeText={setValor} 
+              style={[styles.input, inputFocused2 && styles.inputFocused]} 
+              onFocus={() => setInputFocused2(true)} 
+              onBlur={() => setInputFocused2(false)} keyboardType="numeric"
+              ref={valorRef}
+              onSubmitEditing={() => setTimeout(() => observacoesRef.current?.focus(), 100)}
+              />
+              <TextInput placeholder='Observacoes' 
+              value={observacoes} 
+              onChangeText={setObservacoes} 
+              style={[styles.input, inputFocused3 && styles.inputFocused]} 
+              onFocus={() => setInputFocused3(true)} 
+              onBlur={() => setInputFocused3(false)}
+              ref={observacoesRef}
+              onSubmitEditing={() => {
+                if (!mapping || !valor) {
+                  Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
+                  return;
+                }
+                setModalShown(false);
+                atualizarProc(true);
+                AsyncStorage.removeItem(`pendente_${cliente.id}`); // limpa os dados temporários
+              }}
+              />
               <FormButton
                 title="Salvar atendimento"
                 onPress={() => {
@@ -195,7 +244,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
                     Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
                     return;
                   }
-                
+                setValor(valor);
+                setObservacoes(observacoes);
                   setModalShown(false);
                   atualizarProc(true);
                   AsyncStorage.removeItem(`pendente_${cliente.id}`); // limpa os dados temporários
@@ -211,6 +261,20 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#FFF2F5'},
-  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5, borderWidth: 3, borderColor: colors.title},
-  nome: { fontSize: 24, fontWeight: 'bold' }
+  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5, borderWidth: 3, borderColor: colors.secondary},
+  nome: { fontSize: 24, fontWeight: 'bold' },
+  input: {backgroundColor: colors.cardBackground, 
+    borderWidth: 1, 
+    borderColor: colors.secondary, 
+    padding: 10, 
+    borderRadius: 10,
+    color: colors.primaryDark
+  },
+  inputFocused: {
+    backgroundColor: colors.background, 
+    borderWidth: 1, 
+    borderColor: colors.primary, 
+    padding: 10, 
+    borderRadius: 10,
+  }
 });

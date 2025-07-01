@@ -3,8 +3,6 @@ import {
   getAuth,
   initializeAuth,
   getReactNativePersistence,
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
 } from 'firebase/auth/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -12,9 +10,7 @@ import {
   collection,
   getDocs,
 } from 'firebase/firestore';
-import { signInWithPopup } from 'firebase/auth';
-import { makeRedirectUri } from 'expo-auth-session';
-import Constants from 'expo-constants';
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 
 // Configuração
 const firebaseConfig = {
@@ -41,6 +37,7 @@ try {
 }
 
 const database = getFirestore(app);
+const storage = getStorage(app);
 
 // Função que busca clientes do usuário logado
 async function getClientesDoUsuario() {
@@ -60,4 +57,17 @@ async function getClientesDoUsuario() {
   
 }
 
-export { app, auth, database, getClientesDoUsuario };
+async function uploadImagem(uri: string, clienteId: string): Promise<string> {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+
+  const nomeArquivo = `clientes/${clienteId}/${Date.now()}.jpg`;
+  const storageRef = ref(storage, nomeArquivo);
+
+  await uploadBytes(storageRef, blob);
+
+  const url = await getDownloadURL(storageRef);
+  return url; // URL pública da imagem
+}
+
+export { app, auth, database, getClientesDoUsuario, storage, uploadImagem };

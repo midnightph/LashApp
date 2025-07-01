@@ -1,17 +1,16 @@
 import colors from '@/src/colors';
-import { database } from '@/src/firebaseConfig';
+import { database, uploadImagem } from '@/src/firebaseConfig';
 import FormButton from '@/src/FormButton';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
+import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { gerarRecibo, gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
-import { MotiView } from 'moti';
+import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -47,13 +46,15 @@ export default function DetalhesCliente({ route, navigation }: any) {
   }
 
   const resultado = await ImagePicker.launchCameraAsync({
-    quality: 1,
+    quality: 0.4,
+    base64: false
   });
 
   if (!resultado.canceled) {
     const uri = resultado.assets[0].uri;
-    setImagem(uri);
-    atualizarFoto(cliente.id, uri); // atualiza a imagem no contexto
+    const urlFirebase = await uploadImagem(uri, cliente.id);
+    await updateDoc(doc(database, 'user', getAuth().currentUser.uid, 'Clientes', cliente.id), { foto: urlFirebase });
+    setImagem(urlFirebase);
   }
 };
 
@@ -67,7 +68,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
       await updateDoc(docRef, {
         statusProc: proc
       });
-      if(proc == false) {
+      if(proc == true) {
         await updateDoc(docRef, {
           historico: arrayUnion({
             id: Math.random().toString(36).substr(2, 9),
@@ -85,6 +86,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
   const excluirCliente = async () => {
     const user = getAuth().currentUser;
+
     try{
       await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
       Toast.show({
@@ -103,27 +105,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
       console.error('Erro ao excluir cliente:', error);
     }}
 
-    useEffect(() => {
-      const carregarDadosPendentes = async () => {
-        const dadosSalvos = await AsyncStorage.getItem(`pendente_${cliente.id}`);
-        if (dadosSalvos) {
-          const { mapping, valor, observacoes } = JSON.parse(dadosSalvos);
-          setMapping(mapping);
-          setValor(valor);
-          setObservacoes(observacoes);
-        }
-      };
-      carregarDadosPendentes();
-    }, []);
-
-    useEffect(() => {
-      AsyncStorage.setItem(
-        `pendente_${cliente.id}`,
-        JSON.stringify({ mapping, valor, observacoes })
-      );
-    }, [mapping, valor, observacoes]);
-    
-
   const [inputFocused, setInputFocused] = useState(false);
   const [inputFocused2, setInputFocused2] = useState(false);
   const [inputFocused3, setInputFocused3] = useState(false);
@@ -138,8 +119,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
       animate={{opacity: 1, scale: 1, translateY: 0}}
       transition={{type: 'timing', duration: 500}}>
         <Image source={{uri: cliente.foto}} style={styles.image}/>
-        <View style={{gap: 10, alignItems: 'center'}}>
-          <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150}}>{cliente.name}</Text>
+        <View style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+          <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150}}>{cliente.name.split(' ').slice(0, 2).join(' ')}</Text>
           <TouchableOpacity onPress={() => {
             Linking.openURL(`https://wa.me/${cliente.telefone}`);
           }}>
@@ -173,31 +154,48 @@ export default function DetalhesCliente({ route, navigation }: any) {
       <FormButton
   title={atendimento ? 'Encerrar atendimento' : 'Iniciar atendimento'}
   onPress={() => {
-    const novoStatus = !atendimento;
-    if (novoStatus) {
-      setModalShown(true); // abrir modal ao iniciar
+    if (!atendimento) {
+      setAtendimento(true);      // ✅ já muda o status
+      setModalShown(true);       // ✅ mostra o modal
+    } else {
+      setAtendimento(false);     
+      atualizarProc(false); 
     }
-    setAtendimento(novoStatus); // atualiza localmente
-    atualizarProc(novoStatus);
   }}
   secondary={!atendimento}
   maxWidth={170}
 />
-      <FormButton title="Excluir cliente" onPress={excluirCliente} secondary={true} maxWidth={170}/>
+      <FormButton title="Excluir cliente" onPress={() => {
+        Alert.alert(
+      'Excluir Cliente',
+      'Tem certeza que deseja excluir esse cliente?',
+      [
+        {
+          text: 'Não',
+          style: 'cancel'
+        },
+        {
+          text: 'Excluir',
+          onPress: async () => {
+            await excluirCliente();
+          }
+        }
+      ],
+      { cancelable: true }
+    )
+      }} secondary={true} maxWidth={170}/>
       </View>
       <View style={{display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center'}}>
         <FormButton title="Tirar foto" onPress={tirarFoto} secondary={true} maxWidth={170}/>
         <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente, valor)} secondary={true} maxWidth={170}/>
-      </View>
-      <FormButton title="AI" onPress={() => navigation.navigate('AI', {clienteId: cliente.id})} secondary={false}/>
-
-      {modalShown && (
+          {modalShown && (
         <Modal
           animationType="slide"
           transparent={true}
           visible={modalShown}
           onRequestClose={() => {
             setModalShown(false);
+            setAtendimento(false);
           }}
         >
           <View style={{padding: 20, flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
@@ -233,28 +231,17 @@ export default function DetalhesCliente({ route, navigation }: any) {
                   return;
                 }
                 setModalShown(false);
-                atualizarProc(true);
-                AsyncStorage.removeItem(`pendente_${cliente.id}`); // limpa os dados temporários
+                atualizarProc(true); // ✅ salva direto
               }}
-              />
-              <FormButton
-                title="Salvar atendimento"
-                onPress={() => {
-                  if (!mapping || !valor) {
-                    Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
-                    return;
-                  }
-                setValor(valor);
-                setObservacoes(observacoes);
-                  setModalShown(false);
-                  atualizarProc(true);
-                  AsyncStorage.removeItem(`pendente_${cliente.id}`); // limpa os dados temporários
-                }}                
               />
             </View>
           </View>
         </Modal>
       )}
+      </View>
+      <FormButton title="AI" onPress={() => navigation.navigate('AI', {clienteId: cliente.id})} secondary={false}/>
+
+      
     </SafeAreaView>
   );
 }

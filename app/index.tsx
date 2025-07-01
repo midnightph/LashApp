@@ -23,9 +23,10 @@ export default function Login({ navigation }: any) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && user.emailVerified && autoLogin) {
+      if (user && user.emailVerified) {
         limparClientes();
         navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+      } else {
         setAutoLogin(false);
       }
     });
@@ -81,7 +82,8 @@ export default function Login({ navigation }: any) {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
     <View style={styles.container}>
-      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0, scale: 1 }} style={styles.inner}>
+      {!autoLogin === true && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0, scale: 1 }} style={styles.inner}>
         <Text style={styles.title}>Bem-vindo ao Studio Lash!</Text>
 
         <TextInput
@@ -124,6 +126,8 @@ export default function Login({ navigation }: any) {
 
         <FormButton title="Cadastrar" onPress={signUp} secondary />
       </MotiView>
+      )}
+      
     </View>
     </SafeAreaView>
   );

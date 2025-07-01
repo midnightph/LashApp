@@ -126,14 +126,14 @@ export default function App({ navigation }: any) {
     transition={{ delay: 100, type: 'timing' }}
     style={styles.welcomeText}
   >
-    👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome : ''}!
+    👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome.split(' ').slice(0, 2).join(' ') : ''}!
   </MotiText>
 
   <MotiText
     from={{ opacity: 0, translateY: -10 }}
     animate={{ opacity: 1, translateY: 0 }}
     transition={{ delay: 200, type: 'timing' }}
-    style={styles.subtitle}
+    style={styles.clienteNome}
   >
     Últimos clientes atendidos:
   </MotiText>
@@ -155,7 +155,7 @@ export default function App({ navigation }: any) {
               navigation.navigate('DetalhesCliente', { cliente: item })
             }>
             <Image source={{ uri: item.foto }} style={styles.clientImage} />
-            <Text style={[styles.clienteNome]}>{item.name}</Text>
+            <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
             <Text style={styles.clienteProcedimento}>{item.proc}</Text>
             <Text style={styles.clienteData}>
               {item.dataNasc.toDate().toLocaleDateString()}

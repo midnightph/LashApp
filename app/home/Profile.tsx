@@ -1,15 +1,12 @@
-import { Button, Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AccordionField from '../../src/screens/functions/accordionField';
-import { StyleSheet } from "react-native";
-import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
-import { useEffect, useState } from "react";
-import { useClientes } from '../../src/screens/functions/ClientesContext';
-import { Link, router } from "expo-router";
-import sair from '../index';
 import { getAuth, signOut } from "firebase/auth";
-import { auth, database } from "../../src/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { Button, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, database } from "../../src/firebaseConfig";
+import AccordionField from '../../src/screens/functions/accordionField';
+import { useClientes } from '../../src/screens/functions/ClientesContext';
+import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
 
 export default function Profile({navigation}: any) {
     const [whatsapp, setWhatsapp] = useState('');

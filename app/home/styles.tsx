@@ -55,6 +55,8 @@ const styles = StyleSheet.create({
         height: 120,
         borderRadius: 60,
         marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#E8B4B4',
     },
     clienteNome: {
         color: '#5A5A5A',

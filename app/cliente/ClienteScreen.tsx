@@ -22,6 +22,7 @@ export default function ClienteScreen({navigation} : any) {
             
         })
     }
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
@@ -49,12 +50,12 @@ export default function ClienteScreen({navigation} : any) {
                                     }}>
                                     <Image source={{ uri: item.foto }} style={styles.clienteImage} />
                                     <View style={styles.clienteInfo}>
-                                        <Text style={[styles.clienteNome, { maxWidth: 100}]}>{item.name}</Text>
+                                        <Text style={[styles.clienteNome, { maxWidth: 100}]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
                                         <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                                         <Text style={styles.clienteData}>{item.dataNasc.toDate().toLocaleDateString('pt-BR')}</Text>
                                     </View>
                                     <View>
-                                        {item.atendimento ? <Text style={styles.clienteAtendimento}>Em atendimento</Text> : <Text style={styles.clienteAtendimento}></Text>}
+                                        {item.statusProc ? <Text style={styles.clienteAtendimento}>Em atendimento</Text> : <Text style={styles.clienteAtendimento}></Text>}
                                     </View>
                                 </TouchableOpacity>
                             )}

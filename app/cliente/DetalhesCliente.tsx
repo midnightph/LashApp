@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
+import { deleteObject, getStorage, ref } from 'firebase/storage';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -86,9 +87,14 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
   const excluirCliente = async () => {
     const user = getAuth().currentUser;
-
+    const storage = getStorage();
+    const storagePath = cliente.foto;
+    const decodePath = decodeURIComponent(storagePath);
+    const imageRef = ref(storage, decodePath);
     try{
+      
       await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
+      await deleteObject(imageRef);
       Toast.show({
         type: 'info',
         text1: 'Cliente excluido com sucesso!',
@@ -97,10 +103,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
       limparClientes()
       await carregarClientes()
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Tabs' }]
-      })
+      navigation.goBack()
     } catch (error) {
       console.error('Erro ao excluir cliente:', error);
     }}

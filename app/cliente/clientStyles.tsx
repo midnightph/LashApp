@@ -42,6 +42,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-evenly',
+        borderWidth: 1,
+        borderColor: '#E8B4B4'
     },
     clienteImage: {
         width: 100,
@@ -50,7 +52,9 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10,
         marginLeft: 10,
-        marginRight: 10
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#E8B4B4'
     },
     clienteNome: {
         display: 'flex',        

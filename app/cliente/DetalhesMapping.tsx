@@ -16,6 +16,8 @@ import Toast from "react-native-toast-message";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
+import { deleteObject, getStorage } from "firebase/storage";
+import { ref } from "firebase/storage";
 
 export default function DetalhesMapping({ navigation, route }: any) {
   const { item, clienteId } = route.params;
@@ -36,9 +38,14 @@ export default function DetalhesMapping({ navigation, route }: any) {
 
   const excluir = async () => {
     const user = getAuth().currentUser;
+    const storage = getStorage()
     try {
-      const ref = doc(database, "user", user.uid, "Clientes", clienteId);
-      await updateDoc(ref, {
+      const ref1 = doc(database, "user", user.uid, "Clientes", clienteId);
+      const storagePath = item.foto;
+      const decodePath = decodeURIComponent(storagePath);
+      const imageRef = ref(storage, decodePath);
+      await deleteObject(imageRef);
+      await updateDoc(ref1, {
         historico: arrayRemove(item),
       });
       Toast.show({

@@ -1,4 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
+import { getAuth } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { MotiText, MotiView } from 'moti';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,13 +18,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from 'react-native-toast-message';
+import { database } from '../../src/firebaseConfig';
 import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import styles from './styles';
-import { database } from '../../src/firebaseConfig';
-import { getDoc, doc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { MotiView, MotiText } from 'moti';
 
 export default function App({ navigation }: any) {
   const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
@@ -42,7 +44,7 @@ export default function App({ navigation }: any) {
           const dados = snapshot.data();
           setNome(dados.nome);
         } else {
-          console.log('Documento não encontrado');
+          console.error('Documento não encontrado');
         }
       } catch (error) {
         console.error('Erro ao buscar cliente do usuário logado:', error);
@@ -55,24 +57,48 @@ export default function App({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
-      setIsLoading(true);
-
+  
       const carregar = async () => {
-        await carregarClientes();
-        if (isMounted) {
-          const atualizados = atualizarUltimosClientes();
-          setUltimosClientes(atualizados);
-          setIsLoading(false);
+        try {
+
+          const cache = await AsyncStorage.getItem('ultimosClientes');
+          if (cache && isMounted) {
+            const atualizados = JSON.parse(cache);
+            setUltimosClientes(atualizados);
+            setIsLoading(false);
+          } else {
+            setIsLoading(true);
+          }
+
+          await carregarClientes();
+          if (isMounted) {
+            const atualizados = atualizarUltimosClientes();
+            setUltimosClientes(atualizados);
+            AsyncStorage.setItem('ultimosClientes', JSON.stringify(atualizados));
+          }
+        } catch (error) {
+          if (isMounted) {
+            Toast.show({
+              type: 'error',
+              text1: 'Erro ao carregar clientes: ' + error,
+              position: 'bottom',
+            });
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoading(false);
+          }
         }
       };
-
+  
       carregar();
-
+  
       return () => {
         isMounted = false;
       };
     }, [])
   );
+  
 
   useEffect(() => {
     if (clientes.length > 0) {
@@ -88,7 +114,6 @@ export default function App({ navigation }: any) {
         style={{ flex: 1 }}
       >
         <View style={{ flex: 1 }}>
-          {/* Loader por cima com opacidade zero no conteúdo */}
           {isLoading && (
             <View
               style={{
@@ -158,7 +183,7 @@ export default function App({ navigation }: any) {
             <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
             <Text style={styles.clienteProcedimento}>{item.proc}</Text>
             <Text style={styles.clienteData}>
-              {item.dataNasc.toDate().toLocaleDateString()}
+              {item.dataNasc.seconds}
             </Text>
             {item.statusProc && (
               <Text style={styles.clienteAtendimento}>Em atendimento</Text>

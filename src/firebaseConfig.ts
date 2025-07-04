@@ -57,6 +57,22 @@ async function getClientesDoUsuario() {
   
 }
 
+// firebaseConfig.ts
+async function getHistoricoUsuario(clienteId: string) {
+  const user = getAuth().currentUser;
+  const ref = collection(database, 'user', user.uid, 'Clientes', clienteId, 'Historico');
+  const querySnapshot = await getDocs(ref);
+
+  // Mapeia os dados e inclui o ID de cada doc
+  const historico = querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  return historico;
+}
+
+
 async function uploadImagem(uri: string, clienteId: string): Promise<string> {
   const response = await fetch(uri);
   const blob = await response.blob();
@@ -70,4 +86,4 @@ async function uploadImagem(uri: string, clienteId: string): Promise<string> {
   return url; // URL pública da imagem
 }
 
-export { app, auth, database, getClientesDoUsuario, storage, uploadImagem };
+export { app, auth, database, getClientesDoUsuario, storage, uploadImagem, getHistoricoUsuario };

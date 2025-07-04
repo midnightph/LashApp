@@ -1,3 +1,4 @@
+import colors from '@/src/colors';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -17,17 +18,18 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 40,
-        borderColor: 'gray',
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: 10,
         marginBottom: 10,
         paddingHorizontal: 10,
         backgroundColor: 'white',
         marginTop: 10,
+        borderColor: '#E8B4B4',
     },
     subtitle: {
         fontSize: 18,
-        color: '#888888',
+        color: colors.title,
+        fontWeight: 'bold',
     },
     clienteContainer: {
         backgroundColor: 'white',

@@ -3,6 +3,7 @@ import { FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Text, TextI
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../cliente/clientStyles';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
+import colors from '@/src/colors';
 
 export default function ClienteScreen({navigation} : any) {
 
@@ -39,6 +40,7 @@ export default function ClienteScreen({navigation} : any) {
                             value={termoBusca}
                             onChangeText={setTermoBusca}
                             placeholder='Digite o nome do cliente'
+                            placeholderTextColor={colors.title}
                         />
 
                         <FlatList 

@@ -1,7 +1,7 @@
 import colors from "@/src/colors";
-import { database } from "@/src/firebaseConfig";
+import { database, uploadImagem } from "@/src/firebaseConfig";
 import { getAuth } from "firebase/auth";
-import { arrayRemove, doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { MotiView } from "moti";
 import {
   Alert,
@@ -16,14 +16,18 @@ import Toast from "react-native-toast-message";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
-import { deleteObject, getStorage } from "firebase/storage";
-import { ref } from "firebase/storage";
+import { deleteObject, getStorage, ref } from "firebase/storage";
+import { useClientes } from "@/src/screens/functions/ClientesContext";
+import * as ImagePicker from 'expo-image-picker';
+import FormButton from "@/src/FormButton";
 
 export default function DetalhesMapping({ navigation, route }: any) {
-  const { item, clienteId } = route.params;
+  const { item, clienteId, id } = route.params;
   const data = item.data.toDate().toLocaleDateString();
   const [telefoneCliente, setTelefoneCliente] = useState("");
   const [clienteNome, setClienteNome] = useState("");
+  const { carregarClientes } = useClientes();
+  const [imagem, setImagem] = useState(item.foto);
 
   const fetchTelefone = async () => {
       const user = getAuth().currentUser;
@@ -35,19 +39,18 @@ export default function DetalhesMapping({ navigation, route }: any) {
       }
     }
 
-
   const excluir = async () => {
     const user = getAuth().currentUser;
     const storage = getStorage()
     try {
-      const ref1 = doc(database, "user", user.uid, "Clientes", clienteId);
+      const ref1 = doc(database, "user", user.uid, "Clientes", clienteId, "Historico", id);
       const storagePath = item.foto;
       const decodePath = decodeURIComponent(storagePath);
-      const imageRef = ref(storage, decodePath);
-      await deleteObject(imageRef);
-      await updateDoc(ref1, {
-        historico: arrayRemove(item),
-      });
+      const storageRef = ref(storage, decodePath);
+      await deleteObject(storageRef);
+      
+      await deleteDoc(ref1);
+      await carregarClientes();
       Toast.show({
         type: "info",
         text1: "Atendimento excluído com sucesso!",
@@ -74,11 +77,23 @@ export default function DetalhesMapping({ navigation, route }: any) {
     );
   };
 
+  const encurtarUrl = async (urlOriginal: string): Promise<string | null> => {
+  try {
+    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(urlOriginal)}`);
+    const shortUrl = await response.text();
+    return shortUrl;
+  } catch (error) {
+    console.error('Erro ao encurtar URL:', error);
+    return null;
+  }
+};
+
   const enviarTextoWhatsApp = async () => {
     await fetchTelefone();
+    const urlEncurtada = await encurtarUrl(item.foto);
     const telefoneFormatado = telefoneCliente; // Altere conforme necessário
     const dataFormatada = item.data.toDate().toLocaleDateString();
-    const texto = `Olá ${clienteNome}! Aqui está seu mapping:\n${item.mapping}\nData: ${dataFormatada}\nImagem: ${item.foto || "Imagem não disponível"}`;
+    const texto = `Olá ${clienteNome}! Aqui está seu mapping:\n${item.mapping}\nData: ${dataFormatada}\nImagem: ${urlEncurtada || "Imagem não disponível"}`;
     const url = `https://wa.me/${telefoneFormatado}?text=${encodeURIComponent(
       texto
     )}`;
@@ -106,6 +121,25 @@ export default function DetalhesMapping({ navigation, route }: any) {
       alert("Erro ao baixar ou compartilhar a imagem");
     }
   };
+
+  const tirarFoto = async () => {
+    const permissao = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissao.granted) {
+      Alert.alert('Permissão negada', ' Vocé precisa permitir acesso à câmera.');
+      return;
+
+    }
+    const resultado = await ImagePicker.launchCameraAsync({ quality: 0.4, base64: false });
+
+    if (!resultado.canceled) {
+      const uri = resultado.assets[0].uri;
+      const urlFirebase = await uploadImagem(uri, clienteId);
+      await updateDoc(doc(database, 'user', getAuth().currentUser.uid, 'Clientes', clienteId, 'Historico', id), { foto: urlFirebase });
+      await updateDoc(doc(database, 'user', getAuth().currentUser.uid, 'Clientes', clienteId), { foto: urlFirebase });
+      setImagem(urlFirebase);
+      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,6 +171,8 @@ export default function DetalhesMapping({ navigation, route }: any) {
         >
           <Text style={styles.buttonText}>Compartilhar imagem com a cliente</Text>
         </TouchableOpacity>
+
+        <FormButton title="Tirar foto" onPress={tirarFoto} maxWidth={200} />
       </MotiView>
     </SafeAreaView>
   );

@@ -1,3 +1,7 @@
+// TRANSFORMAR HISTÓRICO EM NOVA COLEÇÃO
+
+
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { getAuth } from 'firebase/auth';
@@ -23,6 +27,7 @@ import { database } from '../../src/firebaseConfig';
 import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import styles from './styles';
+import colors from '@/src/colors';
 
 export default function App({ navigation }: any) {
   const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
@@ -158,7 +163,12 @@ export default function App({ navigation }: any) {
     from={{ opacity: 0, translateY: -10 }}
     animate={{ opacity: 1, translateY: 0 }}
     transition={{ delay: 200, type: 'timing' }}
-    style={styles.clienteNome}
+    style={{
+      fontSize: 16,
+      color: colors.title,
+      marginBottom: 4,
+      fontWeight: 'bold',
+    }}
   >
     Últimos clientes atendidos:
   </MotiText>
@@ -183,7 +193,7 @@ export default function App({ navigation }: any) {
             <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
             <Text style={styles.clienteProcedimento}>{item.proc}</Text>
             <Text style={styles.clienteData}>
-              {item.dataNasc.seconds}
+              {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
             </Text>
             {item.statusProc && (
               <Text style={styles.clienteAtendimento}>Em atendimento</Text>

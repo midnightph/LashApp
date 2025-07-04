@@ -14,12 +14,12 @@
     },
     "android": {
       "navigationBar": {
-      "visible": true,
-      "backgroundColor": "#FF69B4",
-      "barStyle": "light-content",
-      "barStyleOnEdge": "light-content",
-      "behavior": "normal"
-    },
+        "visible": true,
+        "backgroundColor": "#FF69B4",
+        "barStyle": "light-content",
+        "barStyleOnEdge": "light-content",
+        "behavior": "normal"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -42,7 +42,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

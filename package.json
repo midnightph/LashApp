@@ -53,6 +53,7 @@
     "react-datepicker": "^8.3.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-calendars": "^1.1313.0",
     "react-native-date-picker": "^5.0.12",
     "react-native-file-viewer": "^2.1.5",
     "react-native-gesture-handler": "~2.24.0",

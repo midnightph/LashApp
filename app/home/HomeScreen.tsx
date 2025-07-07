@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+import { getAuth } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { MotiText, MotiView } from 'moti';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,18 +14,13 @@ import {
   SafeAreaView,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
-import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { MotiText, MotiView } from 'moti';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
 
 import colors from '@/src/colors';
 import { database } from '../../src/firebaseConfig';
@@ -143,7 +143,7 @@ export default function App({ navigation }: any) {
           {!isLoading && (
             <ScrollView
               contentContainerStyle={{ flexGrow: 1 }}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps="always"
               style={{ marginHorizontal: 10 }}
             >
               <MotiView

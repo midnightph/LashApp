@@ -65,6 +65,9 @@ export default function Menus({ navigation }: any) {
                         <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Lembretes')}>
                             <Text style={styles.title}>Lembretes</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Agenda')}>
+                            <Text style={styles.title}>Agenda</Text>
+                        </TouchableOpacity>
                     </View>
                     <Button title='Sair' onPress={() => { signOutApp() }} />
                 </View>

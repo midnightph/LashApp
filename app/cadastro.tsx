@@ -1,4 +1,6 @@
+import FormButton from '@/src/FormButton';
 import { Timestamp } from 'firebase/firestore';
+import { MotiText, MotiView } from 'moti';
 import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -12,8 +14,6 @@ import MaskInput, { Masks } from 'react-native-mask-input';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import colors from '../src/colors';
-import FormButton from '@/src/FormButton';
-import { MotiView, MotiText } from 'moti';
 
 export default function Cadastro({ navigation }: any) {
   const [nome, setNome] = useState('');

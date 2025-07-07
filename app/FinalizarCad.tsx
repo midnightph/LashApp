@@ -1,6 +1,8 @@
+import colors from '@/src/colors';
 import { database } from '@/src/firebaseConfig';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { MotiText, MotiView } from 'moti';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,9 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import colors from '@/src/colors';
 import { auth } from '../src/firebaseConfig';
-import { MotiText, MotiView } from 'moti';
 
 export default function FinalizarCad({ route, navigation }: any) {
   const { nome, sobrenome, telefone, data } = route.params;

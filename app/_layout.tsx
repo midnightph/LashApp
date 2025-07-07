@@ -1,27 +1,28 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ClientesProvider } from '../src/screens/functions/ClientesContext';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as NavigationBar from 'expo-navigation-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Login from './index';
+import Toast from 'react-native-toast-message';
+import { ClientesProvider } from '../src/screens/functions/ClientesContext';
+import Cadastro from './cadastro';
+import ClienteScreen from "./cliente/ClienteScreen";
+import DetalhesCliente from "./cliente/DetalhesCliente";
+import DetalhesMapping from "./cliente/DetalhesMapping";
+import FinalizarCad from './FinalizarCad';
 import HomeScreen from './home/HomeScreen';
 import Mapping from "./home/Mapping";
-import ClienteScreen from "./cliente/ClienteScreen";
 import Menus from "./home/Menus";
-import DetalhesCliente from "./cliente/DetalhesCliente";
-import Cadastro from './cadastro'
-import FinalizarCad from './FinalizarCad'
-import Toast from 'react-native-toast-message';
-import DetalhesMapping from "./cliente/DetalhesMapping";
+import Login from './index';
 const Stack = createNativeStackNavigator();
-import * as NavigationBar from 'expo-navigation-bar';
 const Tab = createBottomTabNavigator();
 
-import { Home, Users, Menu } from 'lucide-react-native';
-import { View } from 'react-native';
-import { useEffect } from "react";
-import Profile from "./home/Profile";
 import colors from "@/src/colors";
+import { Home, Menu, Users } from 'lucide-react-native';
+import { useEffect } from "react";
+import { View } from 'react-native';
+import Agenda from "./agenda/Agenda";
 import AI from "./cliente/Ai";
+import Profile from "./home/Profile";
 
 function TabNavigator() {
   return (
@@ -93,6 +94,7 @@ export default function RootLayout() {
             <Stack.Screen name='Cadastro' component={Cadastro} />
             <Stack.Screen name='FinalizarCad' component={FinalizarCad} />
             <Stack.Screen name="DetalhesMapping" component={DetalhesMapping} />
+            <Stack.Screen name='Agenda' component={Agenda} />
           </Stack.Navigator>
           <Toast />
       </ClientesProvider>

@@ -4,6 +4,7 @@ import FormButton from '@/src/FormButton';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
+import { deleteObject, getStorage, listAll, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Image, ImageBackground, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -11,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
-import { deleteObject, getStorage, listAll, ref } from 'firebase/storage';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -96,7 +96,12 @@ const excluirCliente = async () => {
     await Promise.all(promises);
 
     // Exclui o documento no Firestore
+    const historicoRef = collection(database, 'user', user.uid, 'Clientes', cliente.id, 'Historico');
+    const querySnapshot = await getDocs(historicoRef);
+    const promisesHistorico = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
+    await Promise.all(promisesHistorico);
     await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
+    
 
     Toast.show({ type: 'info', text1: 'Cliente excluído com sucesso!', position: 'bottom' });
     limparClientes();

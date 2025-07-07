@@ -17,22 +17,22 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     input: {
-        height: 40,
+        height: 50,
         borderWidth: 1,
         borderRadius: 10,
         marginBottom: 10,
         paddingHorizontal: 10,
         backgroundColor: 'white',
         marginTop: 10,
-        borderColor: '#E8B4B4',
+        borderColor: colors.background,
+        fontSize: 16,
     },
     subtitle: {
         fontSize: 18,
         color: colors.title,
-        fontWeight: 'bold',
     },
     clienteContainer: {
-        backgroundColor: 'white',
+        backgroundColor: colors.cardBackground,
         borderRadius: 20,
         shadowColor: '#E8B4B4',
         shadowOpacity: 0.1,
@@ -44,8 +44,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-evenly',
-        borderWidth: 1,
-        borderColor: '#E8B4B4'
     },
     clienteImage: {
         width: 100,
@@ -55,19 +53,17 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginLeft: 10,
         marginRight: 10,
-        borderWidth: 1,
-        borderColor: '#E8B4B4'
     },
     clienteNome: {
         display: 'flex',        
         justifyContent: 'center',
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#5A5A5A',
+        color: colors.primary,
     },
     clienteProcedimento: {
         fontSize: 15,
-        color: '#E8B4B4',
+        color: colors.textDark,
     },
     clienteInfo: {
         display: 'flex',

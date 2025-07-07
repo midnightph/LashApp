@@ -76,17 +76,17 @@ export default function FinalizarCad({ route, navigation }: any) {
   };
 
   const traduzirErroFirebase = (code: string) => {
-  switch (code) {
-    case 'auth/invalid-login-credentials':
-      return 'E-mail ou senha incorretos.';
-    case 'auth/too-many-requests':
-      return 'Muitas tentativas. Tente novamente mais tarde.';
-    case 'auth/email-already-in-use':
-      return 'E-mail já cadastrado.';
-    default:
-      return 'Erro ao fazer login. Tente novamente.';
-  }
-};
+    switch (code) {
+      case 'auth/invalid-login-credentials':
+        return 'E-mail ou senha incorretos.';
+      case 'auth/too-many-requests':
+        return 'Muitas tentativas. Tente novamente mais tarde.';
+      case 'auth/email-already-in-use':
+        return 'E-mail já cadastrado.';
+      default:
+        return 'Erro ao fazer login. Tente novamente.';
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -96,17 +96,17 @@ export default function FinalizarCad({ route, navigation }: any) {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <MotiText 
-          from={{ opacity: 0, translateY: -20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 100, type: 'timing' }}
-          style={styles.title}>Olá{nome? ` ${nome}` : ''}, para finalizarmos seu cadastro, precisamos de algumas informações:</MotiText>
+          <MotiText
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ delay: 100, type: 'timing' }}
+            style={styles.title}>Olá{nome ? ` ${nome}` : ''}, para finalizarmos seu cadastro, precisamos de algumas informações:</MotiText>
 
-          <MotiView 
-          from={{ opacity: 0, translateY: -20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 200, type: 'timing' }}
-          style={{width: '100%'}}>
+          <MotiView
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ delay: 200, type: 'timing' }}
+            style={{ width: '100%' }}>
             <TextInput
               placeholder="Email"
               placeholderTextColor={colors.secondary}
@@ -121,11 +121,11 @@ export default function FinalizarCad({ route, navigation }: any) {
             />
           </MotiView>
 
-          <MotiView 
-          from={{ opacity: 0, translateY: -20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 300, type: 'timing' }}
-          style={{width: '100%'}}>
+          <MotiView
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ delay: 300, type: 'timing' }}
+            style={{ width: '100%' }}>
             <TextInput
               placeholder="Senha"
               placeholderTextColor={colors.secondary}
@@ -140,47 +140,47 @@ export default function FinalizarCad({ route, navigation }: any) {
               onSubmitEditing={() => setTimeout(() => confirmarSenhaRef.current?.focus(), 100)}
             />
           </MotiView>
-          <MotiView 
-          from={{ opacity: 0, translateY: -20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 400, type: 'timing' }}
-          style={{width: '100%'}}>
-          <View style={styles.passwordContainer}>
-                    <TextInput
-                      placeholder="Confirmar senha"
-                      style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                      value={confirmarSenha}
-                      onChangeText={setConfirmarSenha}
-                      secureTextEntry={secure}
-                      autoCapitalize="none"
-                      autoComplete="password"
-                      textContentType="password"
-                      ref={confirmarSenhaRef}
-                      onSubmitEditing={signUp}
-                    />
-                    <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeButton}>
-                      <Text style={{ fontSize: 16 }}>
-                        {secure ? '👁️' : '🙈'}
-                      </Text>
-                    </TouchableOpacity>
-          </View>
-            </MotiView>
-          <MotiView 
-          from={{ opacity: 0, translateY: -20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 500, type: 'timing' }}
-          style={{width: '100%'}}>
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={signUp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Finalizar cadastro!</Text>
-            )}
-          </TouchableOpacity>
+          <MotiView
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ delay: 400, type: 'timing' }}
+            style={{ width: '100%' }}>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                placeholder="Confirmar senha"
+                style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                value={confirmarSenha}
+                onChangeText={setConfirmarSenha}
+                secureTextEntry={secure}
+                autoCapitalize="none"
+                autoComplete="password"
+                textContentType="password"
+                ref={confirmarSenhaRef}
+                onSubmitEditing={signUp}
+              />
+              <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeButton}>
+                <Text style={{ fontSize: 16 }}>
+                  {secure ? '👁️' : '🙈'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </MotiView>
+          <MotiView
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ delay: 500, type: 'timing' }}
+            style={{ width: '100%' }}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={signUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Finalizar cadastro!</Text>
+              )}
+            </TouchableOpacity>
           </MotiView>
         </ScrollView>
       </KeyboardAvoidingView>

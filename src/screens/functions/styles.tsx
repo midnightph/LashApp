@@ -1,3 +1,4 @@
+import colors from "@/src/colors";
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
@@ -8,7 +9,7 @@ const styles = StyleSheet.create({
         paddingLeft: 15,
         color: '#5A5A5A',
         fontSize: 16,
-        fontWeight: 600
+        fontWeight: 600,
     },
     dados: {
         backgroundColor: '#E8B4B4',
@@ -33,16 +34,15 @@ const styles = StyleSheet.create({
     formContainer: {
         marginTop: 15,
         borderRadius: 20,
-        backgroundColor: 'white',
+        backgroundColor: colors.cardBackground,
         shadowColor: '#E8B4B4',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 4 },
         shadowRadius: 12,
-        elevation: 5,
         paddingBottom: 10
     },
     textInput: {
-        color: '#5A5A5A',
+        color: colors.title,
         fontSize: 16,
         fontWeight: 600,
         marginLeft: 15,
@@ -50,11 +50,10 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     input: {
-        fontWeight: 600,
         marginLeft: 25,
     },
     textInput2: {
-        color: '#5A5A5A',
+        color: colors.primary,
         fontSize: 16,
         fontWeight: 600,
         marginLeft: 15,

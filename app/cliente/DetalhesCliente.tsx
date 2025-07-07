@@ -6,7 +6,7 @@ import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
@@ -114,7 +114,8 @@ const excluirCliente = async () => {
   const observacoesRef = useRef<TextInput>(null);
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#FFF2F5', paddingHorizontal: 20}}>
+    <ImageBackground source={require('../images/background.png')} style={{flex: 1}}>
+    <SafeAreaView style={{flex: 1, paddingHorizontal: 20}}>
       <MotiView style={{alignItems: 'center', marginTop: 20, flexDirection: 'row', gap: 20, justifyContent: 'center'}} 
         from={{opacity: 0, scale: 0.5, translateY: 50}}
         animate={{opacity: 1, scale: 1, translateY: 0}}
@@ -123,7 +124,7 @@ const excluirCliente = async () => {
         <View style={{flexDirection: 'column', gap: 10}}>
           <Text style={{fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150}}>{cliente.name.split(' ').slice(0, 2).join(' ')}</Text>
           <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}>
-            <Text style={{fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold'}}>{cliente.telefone}</Text>
+            <Text style={{fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold'}}>{cliente.telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')}</Text>
           </TouchableOpacity>
           {atendimento && (
             <Text style={{fontSize: 10, color: colors.success, fontWeight: 'bold'}}>Atendimento em andamento</Text>
@@ -131,11 +132,11 @@ const excluirCliente = async () => {
         </View>
       </MotiView>
 
-      <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20, borderColor: colors.secondary, borderWidth: 1}}>
+      <View style={{backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20}}>
         <Text style={{fontSize: 18, color: colors.title, fontWeight: 'bold', paddingBottom: 10}}>Últimos atendimentos:</Text>
-        <ScrollView style={{borderTopColor: colors.secondary, borderTopWidth: 1, maxHeight: 300}}>
+        <ScrollView style={{borderTopColor: colors.primary, borderTopWidth: 1, maxHeight: 300}}>
           {historicoComId.map((item, index) => (
-            <TouchableOpacity onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, id: item.id })} key={item.id} style={{borderBottomColor: colors.secondary, borderBottomWidth: 1, padding: 10}}>
+            <TouchableOpacity onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, id: item.id })} key={item.id} style={{borderBottomColor: colors.primary, borderBottomWidth: 1, padding: 10}}>
               <Text style={{color: colors.title, fontWeight: 'bold', fontSize: 16}}>Mapping: {item.mapping}</Text>
               <Text style={{color: colors.secondary}}>Valor: {item.valor}</Text>
               <Text style={{color: colors.secondary}}>Data: {item.data?.toDate().toLocaleDateString()}</Text>
@@ -170,7 +171,7 @@ const excluirCliente = async () => {
 
       <View style={{flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center'}}>
         <FormButton title="Tirar foto" onPress={tirarFoto} secondary={true} maxWidth={170} />
-        <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente, valor)} secondary={true} maxWidth={170} />
+        <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente)} secondary={true} maxWidth={170} />
 
         {modalShown && (
           <Modal animationType="slide" transparent={true} visible={modalShown} onRequestClose={() => {
@@ -196,14 +197,15 @@ const excluirCliente = async () => {
         )}
       </View>
 
-      <FormButton title="AI" onPress={() => navigation.navigate('AI', { clienteId: cliente.id })} secondary={false} />
+      <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} />
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#FFF2F5' },
-  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5, borderWidth: 3, borderColor: colors.secondary },
+  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5},
   nome: { fontSize: 24, fontWeight: 'bold' },
   input: { backgroundColor: colors.cardBackground, borderWidth: 1, borderColor: colors.secondary, padding: 10, borderRadius: 10, color: colors.primaryDark },
   inputFocused: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.primary, padding: 10, borderRadius: 10 }

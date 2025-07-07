@@ -1,17 +1,9 @@
-// TRANSFORMAR HISTÓRICO EM NOVA COLEÇÃO
-
-
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
-import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { MotiText, MotiView } from 'moti';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -21,13 +13,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
+import { getAuth } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { MotiText, MotiView } from 'moti';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+
+import colors from '@/src/colors';
 import { database } from '../../src/firebaseConfig';
 import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
-import styles from './styles';
-import colors from '@/src/colors';
 
 export default function App({ navigation }: any) {
   const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
@@ -62,14 +60,15 @@ export default function App({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
-  
+
       const carregar = async () => {
         try {
-
           const cache = await AsyncStorage.getItem('ultimosClientes');
           if (cache && isMounted) {
             const atualizados = JSON.parse(cache);
-            setUltimosClientes(atualizados);
+            if (atualizados.length > 0) {
+              setUltimosClientes(atualizados);
+            }
             setIsLoading(false);
           } else {
             setIsLoading(true);
@@ -95,15 +94,14 @@ export default function App({ navigation }: any) {
           }
         }
       };
-  
+
       carregar();
-  
+
       return () => {
         isMounted = false;
       };
     }, [])
   );
-  
 
   useEffect(() => {
     if (clientes.length > 0) {
@@ -112,8 +110,14 @@ export default function App({ navigation }: any) {
   }, [clientes, atualizarUltimosClientes]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
+    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 500 }} style={{ flex: 1 }}>
+    <ImageBackground
+      source={require('../images/background.png')}
+      resizeMode="cover"
+      style={{ flex: 1 }}
+    >
+    <SafeAreaView style={{ flex: 1}}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -130,96 +134,145 @@ export default function App({ navigation }: any) {
                 bottom: 0,
                 justifyContent: 'center',
                 alignItems: 'center',
-                backgroundColor: '#FFF2F5',
               }}
             >
-              <ActivityIndicator size="large" color="#FFC0CB" />
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
           )}
 
           {!isLoading && (
-  <ScrollView
-    contentContainerStyle={{ flexGrow: 1 }}
-    keyboardShouldPersistTaps="handled"
-    style={{marginHorizontal: 10}}
-  >
-    <MotiView
-      from={{ opacity: 0, translateY: 30 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 500 }}
-      style={[styles.container, { paddingTop: insets.top }]}
-    >
+            <ScrollView
+              contentContainerStyle={{ flexGrow: 1 }}
+              keyboardShouldPersistTaps="handled"
+              style={{ marginHorizontal: 10 }}
+            >
+              <MotiView
+                from={{ opacity: 0, translateY: 30 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 500 }}
+                style={[styles.container, { paddingTop: insets.top }]}
+              >
+                <MotiText
+                  from={{ opacity: 0, translateY: -10 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ delay: 100, type: 'timing' }}
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 'bold',
+                    color: colors.primary,
+                    marginBottom: 8,
+                  }}
+                >
+                  👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome.split(' ').slice(0, 2).join(' ') : ''}!
+                </MotiText>
 
-  <MotiText
-    from={{ opacity: 0, translateY: -10 }}
-    animate={{ opacity: 1, translateY: 0 }}
-    transition={{ delay: 100, type: 'timing' }}
-    style={styles.welcomeText}
-  >
-    👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome.split(' ').slice(0, 2).join(' ') : ''}!
-  </MotiText>
+                <MotiText
+                  from={{ opacity: 0, translateY: -10 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ delay: 200, type: 'timing' }}
+                  style={{
+                    fontSize: 16,
+                    color: colors.textDark,
+                    marginBottom: 4,
+                  }}
+                >
+                  Últimos clientes atendidos:
+                </MotiText>
 
-  <MotiText
-    from={{ opacity: 0, translateY: -10 }}
-    animate={{ opacity: 1, translateY: 0 }}
-    transition={{ delay: 200, type: 'timing' }}
-    style={{
-      fontSize: 16,
-      color: colors.title,
-      marginBottom: 4,
-      fontWeight: 'bold',
-    }}
-  >
-    Últimos clientes atendidos:
-  </MotiText>
+                <View style={{ paddingTop: 10 }}>
+                  <FlatList
+                    horizontal
+                    data={ultimosClientes}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item, index }) => (
+                      <MotiView
+                        from={{ opacity: 0, translateX: 50 }}
+                        animate={{ opacity: 1, translateX: 0 }}
+                        transition={{ delay: 300 + index * 100, type: 'timing' }}
+                      >
+                        <TouchableOpacity
+                          style={styles.cardCliente}
+                          onPress={() =>
+                            navigation.navigate('DetalhesCliente', { cliente: item })
+                          }
+                        >
+                          <Image source={{ uri: item.foto }} style={styles.clientImage} />
+                          <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
+                          <Text style={styles.clienteProcedimento}>{item.proc}</Text>
+                          <Text style={styles.clienteData}>
+                            {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
+                          </Text>
+                          {item.statusProc && (
+                            <Text style={styles.clienteAtendimento}>Em atendimento</Text>
+                          )}
+                        </TouchableOpacity>
+                      </MotiView>
+                    )}
+                    contentContainerStyle={styles.listContainer}
+                    showsHorizontalScrollIndicator={false}
+                  />
+                </View>
 
-  <View style={{ paddingTop: 10 }}>
-    <FlatList
-      horizontal
-      data={ultimosClientes}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => (
-        <MotiView
-          from={{ opacity: 0, translateX: 50 }}
-          animate={{ opacity: 1, translateX: 0 }}
-          transition={{ delay: 300 + index * 100, type: 'timing' }}
-        >
-          <TouchableOpacity
-            style={styles.clienteCard}
-            onPress={() =>
-              navigation.navigate('DetalhesCliente', { cliente: item })
-            }>
-            <Image source={{ uri: item.foto }} style={styles.clientImage} />
-            <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
-            <Text style={styles.clienteProcedimento}>{item.proc}</Text>
-            <Text style={styles.clienteData}>
-              {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
-            </Text>
-            {item.statusProc && (
-              <Text style={styles.clienteAtendimento}>Em atendimento</Text>
-            )}
-          </TouchableOpacity>
-        </MotiView>
-      )}
-      contentContainerStyle={styles.listContainer}
-      showsHorizontalScrollIndicator={false}
-    />
-  </View>
-
-  <MotiView
-    from={{ opacity: 0, translateY: 50 }}
-    animate={{ opacity: 1, translateY: 0 }}
-    transition={{ delay: 600, type: 'timing' }}
-    style={{ paddingHorizontal: 15 }}
-  >
-    <AddCliente />
-  </MotiView>
-</MotiView>
-
-          </ScrollView>
+                <MotiView
+                  from={{ opacity: 0, translateY: 50 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ delay: 600, type: 'timing' }}
+                  style={{ paddingHorizontal: 15 }}
+                >
+                  <AddCliente />
+                </MotiView>
+              </MotiView>
+            </ScrollView>
           )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </ImageBackground>
+    </MotiView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  },
+  cardCliente: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 20,
+    padding: 15,
+    width: 200,
+    height: 250,
+    marginBottom: 5,
+    marginRight: 15,
+    alignItems: 'center',
+  },
+  clientImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 12,
+  },
+  clienteNome: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  clienteProcedimento: {
+    color: colors.title,
+    fontSize: 14,
+  },
+  clienteData: {
+    color: colors.title,
+    fontSize: 12,
+    marginTop: 6,
+  },
+  clienteAtendimento: {
+    color: colors.success,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  listContainer: {
+    paddingLeft: 15,
+  },
+});

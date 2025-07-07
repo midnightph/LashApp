@@ -3,8 +3,9 @@ import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ImageBackground, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { Feather } from '@expo/vector-icons';
 import colors from '../src/colors';
 import { auth, database } from '../src/firebaseConfig';
 import { useClientes } from '../src/screens/functions/ClientesContext';
@@ -34,16 +35,15 @@ export default function Login({ navigation }: any) {
   }, [autoLogin]);
 
   const traduzirErroFirebase = (code: string) => {
-  switch (code) {
-    case 'auth/invalid-login-credentials':
-      return 'E-mail ou senha incorretos.';
-    case 'auth/too-many-requests':
-      return 'Muitas tentativas. Tente novamente mais tarde.';
-    default:
-      return 'Erro ao fazer login. Tente novamente.';
-  }
-};
-
+    switch (code) {
+      case 'auth/invalid-login-credentials':
+        return 'E-mail ou senha incorretos.';
+      case 'auth/too-many-requests':
+        return 'Muitas tentativas. Tente novamente mais tarde.';
+      default:
+        return 'Erro ao fazer login. Tente novamente.';
+    }
+  };
 
   const login = async () => {
     if (!email || !password) {
@@ -63,14 +63,14 @@ export default function Login({ navigation }: any) {
         setPassword('');
         navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
       }
-    } catch (error) {
+    } catch (error: any) {
       const mensagem = traduzirErroFirebase(error.code);
-      setError(mensagem)
+      setError(mensagem);
       Toast.show({
         type: 'error',
         text1: mensagem,
-        position: 'bottom'
-      })
+        position: 'bottom',
+      });
     } finally {
       setLoading(false);
     }
@@ -79,124 +79,120 @@ export default function Login({ navigation }: any) {
   const signUp = () => navigation.navigate('Cadastro');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
-    <View style={styles.container}>
-      {!autoLogin === true && (
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0, scale: 1 }} style={styles.inner}>
-        <Text style={styles.title}>Bem-vindo ao Studio Lash!</Text>
+    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }} style={{ flex: 1 }}>
+    <ImageBackground source={require('./images/background.png')} resizeMode="cover" style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <View style={styles.container}>
+        {!autoLogin && (
+          <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} style={styles.inner}>
+            <Text style={styles.title}>Bem-vindo ao{'\n'}Studio Lash!</Text>
 
-        <TextInput
-          placeholder="Email"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoComplete="email"
-          onSubmitEditing={() => setTimeout(() => senhaRef.current?.focus(), 100)}
-        />
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor={colors.textLight}
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              onSubmitEditing={() => setTimeout(() => senhaRef.current?.focus(), 100)}
+            />
 
-        <View style={styles.passwordContainer}>
-          <TextInput
-            placeholder="Senha"
-            style={[styles.input, { flex: 1, marginBottom: 0 }]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={secure}
-            ref={senhaRef}
-            onSubmitEditing={login}
-          />
-          <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeButton}>
-            <Text style={{ fontSize: 16 }}>
-              {secure ? '👁️' : '🙈'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-                    style={[styles.button, loading && styles.buttonDisabled]}
-                    onPress={login}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <Text style={styles.buttonText}>Entrar</Text>
-                    )}
-                  </TouchableOpacity>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                placeholder="Senha"
+                placeholderTextColor={colors.textLight}
+                style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={secure}
+                ref={senhaRef}
+                onSubmitEditing={login}
+              />
+              <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeButton}>
+                <Feather name={secure ? 'eye' : 'eye-off'} size={20} color={colors.secondary} />
+              </TouchableOpacity>
+            </View>
 
-        <FormButton title="Cadastrar" onPress={signUp} secondary />
-      </MotiView>
-      )}
-      
-    </View>
+            <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={login} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={colors.secondary} />
+              ) : (
+                <Text style={styles.buttonText}>Entrar</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={signUp}>
+              <Text style={styles.linkButton}>Cadastrar</Text>
+            </TouchableOpacity>
+          </MotiView>
+        )}
+      </View>
     </SafeAreaView>
+    </ImageBackground>
+    </MotiView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inner: {
-    width: '80%',
+    width: '85%',
     alignItems: 'center',
   },
-  buttonDisabled: {
-    backgroundColor: '#aaa',
-  },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 24,
+    color: colors.secondary,
+    marginBottom: 32,
+    textAlign: 'center',
   },
   input: {
     width: '100%',
-    height: 44,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    backgroundColor: colors.cardBackground,
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    height: 50,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    color: colors.textDark,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   eyeButton: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
   button: {
     width: '100%',
-    paddingVertical: 10,
-    backgroundColor: colors.primary,
-    borderRadius: 10,
+    paddingVertical: 14,
+    backgroundColor: colors.secondary,
+    borderRadius: 20,
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    marginTop: 8,
   },
-  secondaryButton: {
-    backgroundColor: colors.cardBackground,
-    borderWidth: 1,
-    borderColor: colors.primary,
+  buttonDisabled: {
+    backgroundColor: colors.primary,
   },
   buttonText: {
-    color: colors.textLight,
-    fontSize: 16,
+    color: colors.background,
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  linkButton: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.background,
   },
 });

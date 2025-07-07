@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ImageBackground, KeyboardAvoidingView, Platform, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../cliente/clientStyles';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import colors from '@/src/colors';
+import { MotiView } from 'moti';
 
 export default function ClienteScreen({navigation} : any) {
 
@@ -25,14 +26,15 @@ export default function ClienteScreen({navigation} : any) {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF2F5' }}>
+        <ImageBackground source={require('../images/background.png')} style={{flex: 1}}>
+        <SafeAreaView style={{ flex: 1}}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
             >
 
-                    <View style={styles.header}>
+                    <MotiView from={{ opacity: 0}} animate={{ opacity: 1}} transition={{ type: 'timing', duration: 1000 }} style={styles.header}>
                         <Text style={styles.welcomeText}>Clientes</Text>
                         <Text style={styles.subtitle}>Pesquise por nome:</Text>
                         <TextInput
@@ -62,8 +64,9 @@ export default function ClienteScreen({navigation} : any) {
                                 </TouchableOpacity>
                             )}
                         />
-                    </View>
+                    </MotiView>
             </KeyboardAvoidingView>
         </SafeAreaView> 
+        </ImageBackground>
     );
 }

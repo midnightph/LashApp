@@ -21,30 +21,23 @@ export default function FormButton({ title, onPress, secondary = false, maxWidth
 const styles = StyleSheet.create({
   button: {
     width: '100%',
-    paddingVertical: 10,
+    paddingVertical: 14,
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    justifyContent: 'center',
+    borderRadius: 20,
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    marginTop: 8,
   },
   text: {
-    color: colors.textLight,
+    color: colors.background,
     fontSize: 16,
     fontWeight: 'bold',
   },
   secondaryButton: {
     backgroundColor: colors.cardBackground,
-    borderWidth: 1,
-    borderColor: colors.primary,
   },
   secondaryText: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: colors.primary,
   },
 });

@@ -1,98 +1,42 @@
+import colors from '@/src/colors';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-    // CONTAINER PRINCIPAL
-    container: {
-        flex: 1,
-        backgroundColor: '#FFF2F5',
-    },
+  // CONTAINER PRINCIPAL
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
 
-    // CABEÇALHO
-    header: {
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
-    welcomeText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#E8B4B4',  // Rosa poá
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 18,
-        color: '#888888',
-    },
+  // CABEÇALHO
+  header: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,  // usei dourado claro
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: colors.secondary,
+  },
+  
+  boxAddCliente: {
+    marginLeft: 15,
+    marginRight: 15,
+    borderRadius: 20,
+    backgroundColor: colors.cardBackground,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 5,
+  },
 
-    // LISTA
-    listContainer: {
-        paddingLeft: 15,
-    },
-
-    // CARD CLIENTE
-    clienteCard: {
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 15,
-        width: 200,
-        height: 250,
-        marginBottom: 5,
-        marginRight: 15,
-        alignItems: 'center',
-        borderColor: '#E8B4B4',  // Rosa poá
-        borderWidth: 1,
-
-        // Sombra iOS
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 3,
-
-        // Sombra Android
-        elevation: 3,
-    },
-    clientImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#E8B4B4',
-    },
-    clienteNome: {
-        color: '#5A5A5A',
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    clienteProcedimento: {
-        color: '#E8B4B4',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    clienteData: {
-        color: '#888888',
-        fontSize: 12,
-        marginTop: 6,
-    },
-    boxAddCliente: {
-        marginLeft: 15,
-        marginRight: 15,
-        borderRadius: 20,
-        backgroundColor: 'white',
-        shadowColor: '#E8B4B4',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    clienteInfo: {
-
-    },
-
-    clienteAtendimento: {
-        color: 'green'
-    }
-    
+  
 });
 
 export default styles;

@@ -6,7 +6,7 @@ import Login from './index';
 import HomeScreen from './home/HomeScreen';
 import Mapping from "./home/Mapping";
 import ClienteScreen from "./cliente/ClienteScreen";
-import Profile from "./home/Profile";
+import Menus from "./home/Menus";
 import DetalhesCliente from "./cliente/DetalhesCliente";
 import Cadastro from './cadastro'
 import FinalizarCad from './FinalizarCad'
@@ -16,9 +16,12 @@ const Stack = createNativeStackNavigator();
 import * as NavigationBar from 'expo-navigation-bar';
 const Tab = createBottomTabNavigator();
 
-import { Home, Users, User } from 'lucide-react-native';
+import { Home, Users, Menu } from 'lucide-react-native';
 import { View } from 'react-native';
 import { useEffect } from "react";
+import Profile from "./home/Profile";
+import colors from "@/src/colors";
+import AI from "./cliente/Ai";
 
 function TabNavigator() {
   return (
@@ -46,15 +49,15 @@ function TabNavigator() {
         },
         tabBarIcon: ({ color, size, focused }) => {
           const iconSize = focused ? size + 4 : size;
-
+          const colorsa = focused ? colors.secondary :colors.primary;
           let Icon;
           if (route.name === 'Home') Icon = Home;
           else if (route.name === 'ClienteScreen') Icon = Users;
-          else if (route.name === 'Profile') Icon = User;
+          else if (route.name === 'Menus') Icon = Menu;
 
           return (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon color={color} size={iconSize} />
+              <Icon color={colorsa} size={iconSize} />
             </View>
           );
         },
@@ -62,7 +65,7 @@ function TabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="ClienteScreen" component={ClienteScreen} />
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Menus" component={Menus} />
     </Tab.Navigator>
   );
 }
@@ -79,11 +82,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ClientesProvider>
           <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name='Ai' component={AI} />
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Tabs" component={TabNavigator} />
             <Stack.Screen name="DetalhesCliente" component={DetalhesCliente} />
             <Stack.Screen name="Mapping" component={Mapping} />
+            <Stack.Screen name='Menu' component={Menus} />
             <Stack.Screen name='Profile' component={Profile} />
             <Stack.Screen name='Cadastro' component={Cadastro} />
             <Stack.Screen name='FinalizarCad' component={FinalizarCad} />

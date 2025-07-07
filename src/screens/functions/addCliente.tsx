@@ -75,7 +75,7 @@ export default function AddCliente({ navigation }: any) {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 100, type: 'timing' }}
         >
-          <Text style={styles.textInput}>Nome da cliente</Text>
+          <Text style={[styles.textInput2, {marginTop: 20}]}>Nome da cliente</Text>
           <TextInput
             placeholder="Nome"
             value={name}

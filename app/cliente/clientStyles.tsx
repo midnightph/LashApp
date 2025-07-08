@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-evenly',
+        borderWidth: 1,
+        borderColor: '#E8B4B4',
     },
     clienteImage: {
         width: 100,

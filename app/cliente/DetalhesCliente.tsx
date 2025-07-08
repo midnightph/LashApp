@@ -3,7 +3,7 @@ import { database, getHistoricoUsuario } from '@/src/firebaseConfig';
 import FormButton from '@/src/FormButton';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getAuth } from 'firebase/auth';
-import { addDoc, collection, deleteDoc, doc, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { deleteObject, getStorage, listAll, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
@@ -59,6 +59,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
     const user = auth.currentUser;
 
     const agendamento = {
+      clienteId: cliente.clienteId,
+      nomeCliente: cliente.name,
       data: Timestamp.fromDate(data),
       mapping: mapping,
       observacoes: observacoes || '',
@@ -124,7 +126,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
       await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
 
       const agendamentosRef = collection(database, 'user', user.uid, 'Agendamentos');
-      const querySnapshotAgendamentos = await getDocs(agendamentosRef);
+      const q = query(agendamentosRef, where('clienteId', '==', cliente.clienteId));
+      const querySnapshotAgendamentos = await getDocs(q);
       const promisesAgendamentos = querySnapshotAgendamentos.docs.map((doc) => deleteDoc(doc.ref));
       await Promise.all(promisesAgendamentos);
 
@@ -136,7 +139,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
     }
   };
 
-  // Funções para DateTimePicker
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (event.type === 'set' && selectedDate) {
       setShowDataPicker(false);

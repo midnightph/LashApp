@@ -22,7 +22,7 @@
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#FFF2F5"
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": false,
       "package": "com.anonymous.LashApp"

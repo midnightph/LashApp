@@ -44,6 +44,7 @@ export default function AddCliente({ navigation }: any) {
     }
 
     const novoCliente = {
+      clienteId: Date.now().toString(),
       name,
       telefone,
       proc: mapping,

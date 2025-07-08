@@ -58,50 +58,42 @@ export default function App({ navigation }: any) {
   }, []);
 
   useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
+  useCallback(() => {
+    let isMounted = true;
 
-      const carregar = async () => {
-        try {
-          const cache = await AsyncStorage.getItem('ultimosClientes');
-          if (cache && isMounted) {
-            const atualizados = JSON.parse(cache);
-            if (atualizados.length > 0) {
-              setUltimosClientes(atualizados);
-            }
-            setIsLoading(false);
-          } else {
-            setIsLoading(true);
-          }
-
-          await carregarClientes();
-          if (isMounted) {
-            const atualizados = atualizarUltimosClientes();
-            setUltimosClientes(atualizados);
-            AsyncStorage.setItem('ultimosClientes', JSON.stringify(atualizados));
-          }
-        } catch (error) {
-          if (isMounted) {
-            Toast.show({
-              type: 'error',
-              text1: 'Erro ao carregar clientes: ' + error,
-              position: 'bottom',
-            });
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoading(false);
-          }
+    const carregar = async () => {
+      try {
+        await carregarClientes(); // atualiza clientes no contexto
+      } catch (error) {
+        if (isMounted) {
+          Toast.show({
+            type: 'error',
+            text1: 'Erro ao carregar clientes: ' + error,
+            position: 'bottom',
+          });
         }
-      };
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
 
-      carregar();
+    carregar();
 
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+    return () => {
+      isMounted = false;
+    };
+  }, [])
+);
+
+// Atualiza ultimosClientes e salva no AsyncStorage sempre que clientes mudar
+useEffect(() => {
+  if (clientes.length > 0) {
+    const atualizados = atualizarUltimosClientes();
+    setUltimosClientes(atualizados);
+    AsyncStorage.setItem('ultimosClientes', JSON.stringify(atualizados));
+  }
+}, [clientes, atualizarUltimosClientes]);
+
 
   useEffect(() => {
     if (clientes.length > 0) {
@@ -140,11 +132,9 @@ export default function App({ navigation }: any) {
             </View>
           )}
 
-          {!isLoading && (
             <ScrollView
               contentContainerStyle={{ flexGrow: 1 }}
               keyboardShouldPersistTaps="always"
-              style={{ marginHorizontal: 10 }}
             >
               <MotiView
                 from={{ opacity: 0, translateY: 30 }}
@@ -160,7 +150,8 @@ export default function App({ navigation }: any) {
                     fontSize: 24,
                     fontWeight: 'bold',
                     color: colors.primary,
-                    marginBottom: 8,
+                    marginBottom: 8, 
+                    marginHorizontal: 15
                   }}
                 >
                   👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome.split(' ').slice(0, 2).join(' ') : ''}!
@@ -174,6 +165,7 @@ export default function App({ navigation }: any) {
                     fontSize: 16,
                     color: colors.textDark,
                     marginBottom: 4,
+                    marginHorizontal: 15
                   }}
                 >
                   Últimos clientes atendidos:
@@ -217,13 +209,12 @@ export default function App({ navigation }: any) {
                   from={{ opacity: 0, translateY: 50 }}
                   animate={{ opacity: 1, translateY: 0 }}
                   transition={{ delay: 600, type: 'timing' }}
-                  style={{ paddingHorizontal: 15 }}
+                  style={{ paddingHorizontal: 30 }}
                 >
                   <AddCliente />
                 </MotiView>
               </MotiView>
             </ScrollView>
-          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -245,6 +236,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginRight: 15,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary
   },
   clientImage: {
     width: 120,

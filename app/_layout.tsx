@@ -23,6 +23,7 @@ import { View } from 'react-native';
 import Agenda from "./agenda/Agenda";
 import AI from "./cliente/Ai";
 import Profile from "./home/Profile";
+import Catalogo from "./catalogo/Catalogo";
 
 function TabNavigator() {
   return (

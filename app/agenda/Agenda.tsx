@@ -1,13 +1,15 @@
 import colors from '@/src/colors';
 import { database } from '@/src/firebaseConfig';
+import { Ionicons } from '@expo/vector-icons';
 import { getAuth } from 'firebase/auth';
 import { collection, getDocs, query, Timestamp, where } from 'firebase/firestore';
+import { MotiView } from 'moti';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function Agenda() {
+export default function Agenda({ navigation }: any) {
   const [selectedDate, setSelectedDate] = useState('');
   const [agendamentos, setAgendamentos] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
@@ -73,6 +75,12 @@ export default function Agenda() {
       source={require('../images/background.png')}
       style={{ flex: 1 }}
     >
+      <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 20, gap: 10 }} from={{opacity: 0}} animate={{opacity: 1}} transition={{type: 'timing', duration: 1000}}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={35} color={colors.primary} />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.primary }}>Agenda</Text>
+        </MotiView>
       <SafeAreaView style={styles.container}>
         <Calendar style={{ borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: colors.primary }}
           onDayPress={day => {
@@ -100,7 +108,7 @@ export default function Agenda() {
           </View>
         ) : (
           selectedDate && (
-            <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 24 }} />
+            <ActivityIndicator size="large" color={colors.secondary} style={{ marginTop: 24 }} />
           )
         )}
       </SafeAreaView>

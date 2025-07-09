@@ -7,11 +7,12 @@ import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDo
 import { deleteObject, getStorage, listAll, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, ImageBackground, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ImageBackground, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -38,6 +39,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
   const valorRef = useRef<TextInput>(null);
   const observacoesRef = useRef<TextInput>(null);
+
+  const [clienteFiel, setClienteFiel] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchHistoricoComId() {
@@ -180,27 +184,92 @@ export default function DetalhesCliente({ route, navigation }: any) {
     await agendar(dateWithTime);
   };
 
+  useEffect(() => {
+    async function fetchHistoricoComId() {
+      setLoading(true);
+      try {
+        const historico = await getHistoricoUsuario(cliente.id);
+
+        // Ordena por data decrescente
+        const ordenado = historico
+          .filter(h => h.data)
+          .sort((a, b) => b.data.toDate() - a.data.toDate());
+
+        setHistoricoComId(ordenado);
+
+        // Verifica se os 3 últimos atendimentos foram nos últimos 4 meses
+        if (ordenado.length >= 3) {
+          const quatroMesesAtras = new Date();
+          quatroMesesAtras.setMonth(quatroMesesAtras.getMonth() - 4);
+
+          const ultimosTres = ordenado.slice(0, 3);
+          const todosDentroDoPrazo = ultimosTres.every(
+            item => item.data.toDate() >= quatroMesesAtras
+          );
+
+          setClienteFiel(todosDentroDoPrazo);
+        }
+      } catch (e) {
+        console.error('Erro ao buscar histórico:', e);
+      }
+
+      setLoading(false);
+    }
+
+    fetchHistoricoComId();
+  }, []);
+
+  const iniciarAtendimento = async () => {
+    if (!mapping || !valor) {
+      Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
+      return;
+    }
+    setModalShown(false);
+    atualizarProc(true);
+
+  };
+
   return (
     <ImageBackground source={require('../images/background.png')} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 20 }}>
+        <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 }} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={35} color={colors.primary} />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.primary }}>Detalhes Cliente</Text>
+        </MotiView>
         <MotiView
           style={{ alignItems: 'center', marginTop: 20, flexDirection: 'row', gap: 20, justifyContent: 'center' }}
           from={{ opacity: 0, scale: 0.5, translateY: 50 }}
           animate={{ opacity: 1, scale: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 500 }}
-        >
-          <Image source={{ uri: imagem }} style={styles.image} />
-          <View style={{ flexDirection: 'column', gap: 10 }}>
-            <Text style={{ fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150 }}>
-              {cliente.name.split(' ').slice(0, 2).join(' ')}
-            </Text>
-            <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}>
-              <Text style={{ fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold' }}>
-                {cliente.telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')}
-              </Text>
-            </TouchableOpacity>
-            {atendimento && <Text style={{ fontSize: 10, color: colors.success, fontWeight: 'bold' }}>Atendimento em andamento</Text>}
-          </View>
+          transition={{ type: 'timing', duration: 1000 }}
+        >{loading ? (
+          <ActivityIndicator size="large" color={colors.primary} />
+        ) : (
+          <>
+            <Image source={{ uri: imagem }} style={styles.image} />
+            <View style={{ flexDirection: 'column', gap: 10 }}>
+              {clienteFiel ? (
+                <>
+                  <Text style={{ fontSize: 24, color: '#FFD700', fontWeight: 'bold' }}>{cliente.name}</Text>
+                  <Text style={{ fontSize: 16, color: colors.secondary, fontWeight: 'bold' }}>Cliente fiel</Text>
+                </>
+              ) : (
+                <Text style={{ fontSize: 24, color: colors.primary, fontWeight: 'bold', maxWidth: 150 }}>
+                  {cliente.name.split(' ').slice(0, 2).join(' ')}
+                </Text>
+              )
+              }
+              <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}>
+                <Text style={{ fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold' }}>
+                  {cliente.telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')}
+                </Text>
+              </TouchableOpacity>
+              {atendimento && <Text style={{ fontSize: 10, color: colors.success, fontWeight: 'bold' }}>Atendimento em andamento</Text>}
+            </View>
+          </>
+        )}
+
         </MotiView>
 
         <View style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }}>
@@ -324,15 +393,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
                     onFocus={() => setInputFocused3(true)}
                     onBlur={() => setInputFocused3(false)}
                     ref={observacoesRef}
-                    onSubmitEditing={async () => {
-                      if (!mapping || !valor) {
-                        Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
-                        return;
-                      }
-                      setModalShown(false);
-                      atualizarProc(true);
-                    }}
                   />
+                  <FormButton title="Iniciar atendimento" onPress={iniciarAtendimento} />
                 </View>
               </View>
             </Modal>
@@ -388,7 +450,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
                     onFocus={() => setInputFocused3(true)}
                     onBlur={() => setInputFocused3(false)}
                     ref={observacoesRef}
-                    onSubmitEditing={confirmarAgendamento}
                   />
                   <FormButton title="Confirmar" onPress={confirmarAgendamento} />
                 </View>

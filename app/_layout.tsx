@@ -23,6 +23,8 @@ import { View } from 'react-native';
 import Agenda from "./agenda/Agenda";
 import AI from "./cliente/Ai";
 import Profile from "./home/Profile";
+import Catalogo from "./catalogo/Catalogo";
+import ForgotPassword from "./forgotPassword/ForgotPassword";
 
 function TabNavigator() {
   return (
@@ -95,6 +97,7 @@ export default function RootLayout() {
             <Stack.Screen name='FinalizarCad' component={FinalizarCad} />
             <Stack.Screen name="DetalhesMapping" component={DetalhesMapping} />
             <Stack.Screen name='Agenda' component={Agenda} />
+            <Stack.Screen name='ForgotPassword' component={ForgotPassword} />
           </Stack.Navigator>
           <Toast />
       </ClientesProvider>

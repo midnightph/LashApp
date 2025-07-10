@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
         marginLeft: 25,
     },
     textInput2: {
-        color: colors.primary,
+        color: colors.secondary,
         fontSize: 16,
         fontWeight: 600,
         marginLeft: 15,

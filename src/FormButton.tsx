@@ -34,6 +34,8 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: colors.cardBackground,
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   secondaryText: {
     fontSize: 16,

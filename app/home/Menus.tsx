@@ -1,13 +1,13 @@
 import { getAuth, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { Button, ImageBackground, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Button, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, database } from "../../src/firebaseConfig";
-import AccordionField from '../../src/screens/functions/accordionField';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { enviarLembretesEmLote } from '../../src/screens/functions/whatsappService';
 import colors from "@/src/colors";
+import { Calendar, NotebookIcon, User, Users } from "lucide-react-native";
 
 export default function Menus({ navigation }: any) {
     const [whatsapp, setWhatsapp] = useState('');
@@ -57,15 +57,19 @@ export default function Menus({ navigation }: any) {
                 <View style={styles.container}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                         <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('DetalhesCliente')}>
+                            <Users size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Clientes</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Profile', { nome, telefone })}>
+                            <User size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Perfil</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Lembretes')}>
+                            <NotebookIcon size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Lembretes</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Agenda')}>
+                            <Calendar size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Agenda</Text>
                         </TouchableOpacity>
                     </View>
@@ -104,6 +108,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         marginBottom: 10,
         borderWidth: 2,
-        borderColor: colors.secondary
+        borderColor: colors.secondary,
+        gap: 10
     }
 });

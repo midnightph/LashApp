@@ -1,8 +1,16 @@
 import colors from "@/src/colors";
 import { database, uploadImagem } from "@/src/firebaseConfig";
+import FormButton from "@/src/FormButton";
+import { useClientes } from "@/src/screens/functions/ClientesContext";
+import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as ImagePicker from 'expo-image-picker';
+import * as Sharing from "expo-sharing";
 import { getAuth } from "firebase/auth";
 import { deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { deleteObject, getStorage, ref } from "firebase/storage";
 import { MotiView } from "moti";
+import { useState } from "react";
 import {
   Alert,
   Image,
@@ -13,13 +21,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import { useEffect, useState } from "react";
-import { deleteObject, getStorage, ref } from "firebase/storage";
-import { useClientes } from "@/src/screens/functions/ClientesContext";
-import * as ImagePicker from 'expo-image-picker';
-import FormButton from "@/src/FormButton";
 
 export default function DetalhesMapping({ navigation, route }: any) {
   const { item, clienteId, id } = route.params;
@@ -142,6 +143,13 @@ export default function DetalhesMapping({ navigation, route }: any) {
   }
 
   return (
+    <>
+    <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, gap: 10, marginTop: 10 }} from={{opacity: 0}} animate={{opacity: 1}} transition={{type: 'timing', duration: 1000}}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={35} color={colors.primary} />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.primary }}>Perfil</Text>
+        </MotiView>
     <SafeAreaView style={styles.container}>
       <MotiView
         style={styles.card}
@@ -175,6 +183,7 @@ export default function DetalhesMapping({ navigation, route }: any) {
         <FormButton title="Tirar foto" onPress={tirarFoto} maxWidth={200} />
       </MotiView>
     </SafeAreaView>
+    </>
   );
 }
 

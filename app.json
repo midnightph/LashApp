@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "LashApp",
-    "slug": "studio-lash",
+    "name": "BEA",
+    "slug": "Beauty Easy App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "studio-lash",
-    "owner": "midnight2606",
+    "owner": "midnightph",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,13 +16,13 @@
       "navigationBar": {
         "visible": true,
         "backgroundColor": "#FF69B4",
-        "barStyle": "light-content",
-        "barStyleOnEdge": "light-content",
+        "barStyle": "transparent",
+        "barStyleOnEdge": "transparent",
         "behavior": "normal"
       },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": false,
       "package": "com.anonymous.LashApp"
@@ -37,10 +37,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000"
         }
       ],
       "expo-notifications"

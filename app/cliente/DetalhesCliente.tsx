@@ -240,9 +240,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
         </MotiView>
         <MotiView
           style={{ alignItems: 'center', marginTop: 20, flexDirection: 'row', gap: 20, justifyContent: 'center' }}
-          from={{ opacity: 0, scale: 0.5, translateY: 50 }}
-          animate={{ opacity: 1, scale: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 1000 }}
+          from={{ opacity: 0, translateY: 50 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 1500 }}
         >{loading ? (
           <ActivityIndicator size="large" color={colors.primary} />
         ) : (
@@ -272,25 +272,25 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
         </MotiView>
 
-        <View style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }}>
-          <Text style={{ fontSize: 18, color: colors.title, fontWeight: 'bold', paddingBottom: 10 }}>Últimos atendimentos:</Text>
-          <ScrollView style={{ borderTopColor: colors.primary, borderTopWidth: 1, maxHeight: 300 }}>
+        <MotiView style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }} from={{opacity: 0, translateY: 50}} animate={{opacity: 1, translateY: 0}} transition={{type: 'timing', duration: 1500}}>
+          <Text style={{ fontSize: 18, color: colors.primary, fontWeight: 'bold', paddingBottom: 10 }}>Últimos atendimentos:</Text>
+          <ScrollView style={{ borderTopColor: colors.primary, borderTopWidth: 1, maxHeight: 250 }}>
             {historicoComId.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, id: item.id })}
                 style={{ borderBottomColor: colors.primary, borderBottomWidth: 1, padding: 10 }}
               >
-                <Text style={{ color: colors.title, fontWeight: 'bold', fontSize: 16 }}>Mapping: {item.mapping}</Text>
-                <Text style={{ color: colors.secondary }}>Valor: {item.valor}</Text>
-                <Text style={{ color: colors.secondary }}>Data: {item.data?.toDate().toLocaleDateString()}</Text>
-                <Text style={{ color: colors.secondary }}>Observações: {item.observacoes || 'Nenhuma observação'}</Text>
+                <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 16 }}>Mapping: {item.mapping}</Text>
+                <Text style={{ color: colors.textDark }}>Valor: {item.valor}</Text>
+                <Text style={{ color: colors.textDark }}>Data: {item.data?.toDate().toLocaleDateString()}</Text>
+                <Text style={{ color: colors.textDark }}>Observações: {item.observacoes || 'Nenhuma observação'}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </MotiView>
 
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, justifyContent: 'center' }}>
+        <MotiView from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1250 }} style={{ flexDirection: 'row', gap: 10, marginTop: 20, justifyContent: 'center' }}>
           <FormButton
             title={atendimento ? 'Encerrar atendimento' : 'Iniciar atendimento'}
             onPress={() => {
@@ -316,9 +316,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
             secondary={true}
             maxWidth={170}
           />
-        </View>
+        </MotiView>
 
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center' }}>
+        <MotiView from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1000 }} style={{ flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center' }}>
           <FormButton title="Agendar" onPress={() => setShowDataPicker(true)} secondary={true} maxWidth={170} />
           <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente)} secondary={true} maxWidth={170} />
 
@@ -339,7 +339,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
               onChange={onTimeChange}
             />
           )}
-        </View>
+        </MotiView>
 
         {/* Modal para iniciar atendimento */}
         {modalShown && (
@@ -457,8 +457,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
             </Modal>
           </View>
         )}
-
-        <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} />
+        <MotiView style={{flex: 1}} from={{ opacity: 0}} animate={{ opacity: 1}} transition={{ type: 'timing', duration: 1000 }}>
+          <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} />
+        </MotiView>
       </SafeAreaView>
     </ImageBackground>
   );

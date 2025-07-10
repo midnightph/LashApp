@@ -149,12 +149,12 @@ useEffect(() => {
                   style={{
                     fontSize: 24,
                     fontWeight: 'bold',
-                    color: colors.primary,
+                    color: colors.secondary,
                     marginBottom: 8, 
                     marginHorizontal: 15
                   }}
                 >
-                  👋 Bem-vindo(a) ao Studio Lash{nome ? ' ' + nome.split(' ').slice(0, 2).join(' ') : ''}!
+                  👋 Bem-vindo(a) ao Studio Lash!
                 </MotiText>
 
                 <MotiText

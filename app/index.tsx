@@ -78,6 +78,8 @@ export default function Login({ navigation }: any) {
 
   const signUp = () => navigation.navigate('Cadastro');
 
+  const forgotPassword = () => navigation.navigate('ForgotPassword');
+
   return (
     <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }} style={{ flex: 1 }}>
     <ImageBackground source={require('./images/background.png')} resizeMode="cover" style={{flex: 1}}>
@@ -86,11 +88,11 @@ export default function Login({ navigation }: any) {
       <View style={styles.container}>
         {!autoLogin && (
           <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} style={styles.inner}>
-            <Text style={styles.title}>Bem-vindo ao{'\n'}Studio Lash!</Text>
+            <Text style={styles.title}>Bem-vindo(a) ao{'\n'}Studio Lash!</Text>
 
             <TextInput
               placeholder="Email"
-              placeholderTextColor={colors.textLight}
+              placeholderTextColor={colors.primary}
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -103,7 +105,7 @@ export default function Login({ navigation }: any) {
             <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Senha"
-                placeholderTextColor={colors.textLight}
+                placeholderTextColor={colors.primary}
                 style={[styles.input, { flex: 1, marginBottom: 0 }]}
                 value={password}
                 onChangeText={setPassword}
@@ -126,6 +128,10 @@ export default function Login({ navigation }: any) {
 
             <TouchableOpacity onPress={signUp}>
               <Text style={styles.linkButton}>Cadastrar</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={forgotPassword}>
+              <Text style={[styles.linkButton, {fontSize: 16, color: colors.secondary, textDecorationLine: 'underline'}]}>Esqueci minha senha</Text>
             </TouchableOpacity>
           </MotiView>
         )}
@@ -162,7 +168,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: colors.textDark,
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: colors.secondary,
   },
   passwordContainer: {
     flexDirection: 'row',

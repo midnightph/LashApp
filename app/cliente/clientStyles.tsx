@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-evenly',
         borderWidth: 1,
-        borderColor: '#E8B4B4',
+        borderColor: colors.primary,
     },
     clienteImage: {
         width: 100,

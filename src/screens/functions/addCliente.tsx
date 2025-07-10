@@ -159,8 +159,8 @@ export default function AddCliente({ navigation }: any) {
                   />
                 )}
 
-                <View style={{ paddingVertical: 20 }}>
-                  <FormButton title="Enviar" onPress={handleSendForm} secondary />
+                <View style={{justifyContent: 'center', alignItems: 'center', paddingTop: 10 }}>
+                  <FormButton title="Enviar" onPress={handleSendForm} secondary maxWidth={320}/>
                 </View>
               </MotiView>
             )}

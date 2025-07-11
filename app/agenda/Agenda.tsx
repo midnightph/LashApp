@@ -1,115 +1,281 @@
 import colors from '@/src/colors';
 import { database } from '@/src/firebaseConfig';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, query, Timestamp, where } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  Timestamp,
+  where,
+} from 'firebase/firestore';
 import { MotiView } from 'moti';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ImageBackground,
+  Linking,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 export default function Agenda({ navigation }: any) {
   const [selectedDate, setSelectedDate] = useState('');
   const [agendamentos, setAgendamentos] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [todosAgendamentos, setTodosAgendamentos] = useState([]);
   const user = getAuth().currentUser;
 
-  useEffect(() => {
-    const fetchAgendamentos = async () => {
-      if (user && selectedDate) {
-        setAgendamentos([]);
-        const [year, month, day] = selectedDate.split('-').map(Number);
-        // Corrigindo para UTC e ignorando fuso do dispositivo
-        const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-        const end = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+  const fetchTodosAgendamentos = useCallback(async () => {
+    if (!user) return;
+    const uid = user.uid;
+    const agendamentoRef = collection(database, 'user', uid, 'Agendamentos');
+    const querySnapshot = await getDocs(agendamentoRef);
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setTodosAgendamentos(data);
+  }, [user]);
 
-        const uid = user.uid;
-        const agendamentoRef = collection(database, 'user', uid, 'Agendamentos');
-
-        const q = query(
-          agendamentoRef,
-          where('data', '>=', Timestamp.fromDate(start)),
-          where('data', '<=', Timestamp.fromDate(end))
-        );
-
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map(doc => doc.data());
-        setAgendamentos(data);
-      }
-    };
-
-    fetchAgendamentos();
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const fecthDiasMarcados = async () => {
-      if(!user) return;
+  const fetchAgendamentos = useCallback(async () => {
+    if (user && selectedDate) {
+      setAgendamentos([]);
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+      const end = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
       const uid = user.uid;
       const agendamentoRef = collection(database, 'user', uid, 'Agendamentos');
 
-      const querySnapshot= await getDocs(agendamentoRef);
+      const q = query(
+        agendamentoRef,
+        where('data', '>=', Timestamp.fromDate(start)),
+        where('data', '<=', Timestamp.fromDate(end))
+      );
+
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .sort((a, b) => a.data.seconds - b.data.seconds);
+
+      setAgendamentos(data);
+
+      if (data.length === 0) {
+        Toast.show({
+          type: 'info',
+          text1: 'Nenhum agendamento encontrado',
+          position: 'bottom',
+        });
+      }
+    }
+  }, [user, selectedDate]);
+
+  useEffect(() => {
+    fetchAgendamentos();
+  }, [fetchAgendamentos]);
+
+  useEffect(() => {
+    const fecthDiasMarcados = async () => {
+      if (!user) return;
+
+      const uid = user.uid;
+      const agendamentoRef = collection(database, 'user', uid, 'Agendamentos');
+
+      const querySnapshot = await getDocs(agendamentoRef);
       const marcados: Record<string, any> = {};
       querySnapshot.forEach(doc => {
         const data = doc.data().data?.toDate();
-        if(data) {
+        if (data) {
           const dateStr = data.toISOString().split('T')[0];
           marcados[dateStr] = { marked: true, dotColor: colors.primary };
         }
-      })
+      });
       setMarkedDates(marcados);
-    }
+    };
 
     fecthDiasMarcados();
-  }, [user])
+    fetchTodosAgendamentos();
+  }, [user, fetchTodosAgendamentos]);
 
-  const marked = {};
-  agendamentos.forEach((item) => {
-    const dateStr = item.data.toDate().toISOString().split('T')[0]; // '2025-07-09'
-    marked[dateStr] = { marked: true, dotColor: 'purple' };
-  });
+  const openOptions = (item: any) => {
+    Alert.alert('Opções', 'Escolha o que fazer', [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Excluir',
+        onPress: () => confirmarExclusao(item),
+        style: 'destructive',
+      },
+      {
+        text: 'Confirmar via WhatsApp',
+        onPress: () =>
+          Linking.openURL(
+            `https://wa.me/55${item.telefone.replace(
+              /\D/g,
+              ''
+            )}?text=Olá ${item.nomeCliente
+              .split(' ')
+              .slice(0, 2)
+              .join(
+                ' '
+              )}, podemos confirmar o seu horário no dia ${item.data
+              .toDate()
+              .toLocaleString()
+              .slice(0, 10)} às ${item.data
+              .toDate()
+              .toLocaleString()
+              .slice(11, 16)}? 😊`
+          ),
+        style: 'default',
+      },
+    ]);
+  };
+
+  const confirmarExclusao = (item: any) => {
+    Alert.alert('Confirmar exclusão', 'Deseja realmente excluir esse agendamento?', [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Sim',
+        onPress: () => excluir(item),
+        style: 'destructive',
+      },
+    ]);
+  };
+
+  const excluir = async (item: any) => {
+    const uid = user?.uid;
+    const agendamentoRef = doc(database, 'user', uid!, 'Agendamentos', item.id);
+
+    try {
+      await deleteDoc(agendamentoRef);
+      Toast.show({
+        type: 'success',
+        text1: 'Agendamento excluído com sucesso',
+        position: 'bottom',
+      });
+      setAgendamentos(prev => prev.filter(a => a.id !== item.id));
+      setTodosAgendamentos(prev => prev.filter(a => a.id !== item.id));
+    } catch (e) {
+      console.log(e);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao excluir agendamento',
+        position: 'bottom',
+      });
+    }
+  };
+
+  const agendamentosFiltrados = searchTerm.trim()
+    ? todosAgendamentos.filter(agendamento =>
+        agendamento.nomeCliente
+          .toLowerCase()
+          .includes(searchTerm.trim().toLowerCase())
+      )
+    : agendamentos;
 
   return (
     <ImageBackground
       source={require('../images/background.png')}
       style={{ flex: 1 }}
     >
-      <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 20, gap: 10 }} from={{opacity: 0}} animate={{opacity: 1}} transition={{type: 'timing', duration: 1000}}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={35} color={colors.primary} />
-            </TouchableOpacity>
-            <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.primary }}>Agenda</Text>
+      <SafeAreaView style={styles.safe}>
+        <MotiView
+          style={styles.header}
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: 'timing', duration: 1000 }}
+        >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={30} color={colors.primary} />
+          </TouchableOpacity>
+
+          <Text style={styles.title}>Agenda</Text>
+
+          <TouchableOpacity onPress={fetchAgendamentos}>
+            <Ionicons name="refresh" size={28} color={colors.primary} />
+          </TouchableOpacity>
         </MotiView>
-      <SafeAreaView style={styles.container}>
-        <Calendar style={{ borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: colors.primary }}
-          onDayPress={day => {
-            setSelectedDate(day.dateString);
+
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar cliente..."
+          placeholderTextColor="#999"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+        />
+
+        <Calendar
+          style={styles.calendar}
+          onDayPress={day => setSelectedDate(day.dateString)}
+          markedDates={{
+            ...markedDates,
+            ...(selectedDate && {
+              [selectedDate]: {
+                ...(markedDates[selectedDate] || {}),
+                selected: true,
+                selectedColor: colors.primary,
+              },
+            }),
           }}
-          markedDates={markedDates}
           theme={{
             selectedDayBackgroundColor: colors.background,
             todayTextColor: '#333',
             arrowColor: colors.primary,
-            monthTextColor: colors.tex,
+            monthTextColor: colors.text,
           }}
         />
 
-        {selectedDate && agendamentos.length > 0 ? (
-          <View style={styles.infoContainer}>
+        {agendamentosFiltrados.length > 0 ? (
+          <MotiView
+            style={styles.infoContainer}
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: 'timing', duration: 1000 }}
+          >
             <Text style={styles.infoText}>Agendamentos:</Text>
-            {agendamentos.map((agendamento, index) => (
-              <Text key={index} style={styles.dateText}>
-                {agendamento.nomeCliente.split(' ').slice(0, 2).join(' ')} -{' '}
-                {agendamento.mapping.split(' ')} -{' '}
-                {agendamento.data.toDate().toLocaleString().slice(11, 16)}
-              </Text>
+            {agendamentosFiltrados.map((agendamento, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => openOptions(agendamento)}
+                style={styles.agendamentoItem}
+              >
+                <FontAwesome name="whatsapp" size={20} color="#25D366" />
+                <Text style={styles.dateText}>
+                  {agendamento.nomeCliente
+                    .split(' ')
+                    .slice(0, 2)
+                    .join(' ')}{' '}
+                  - {agendamento.mapping} -{' '}
+                  {agendamento.data.toDate().toLocaleString().slice(0, 16)}
+                </Text>
+              </TouchableOpacity>
             ))}
-          </View>
+          </MotiView>
         ) : (
-          selectedDate && (
-            <ActivityIndicator size="large" color={colors.secondary} style={{ marginTop: 24 }} />
-          )
+          <MotiView
+            style={styles.infoContainer}
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: 'timing', duration: 1000 }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={colors.background}
+              style={{ marginTop: 24 }}
+            />
+          </MotiView>
         )}
       </SafeAreaView>
     </ImageBackground>
@@ -117,25 +283,57 @@ export default function Agenda({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    padding: 16,
-    paddingVertical: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginTop: 10,
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  calendar: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginHorizontal: 16,
+    marginTop: 10,
+  },
+  searchInput: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    color: colors.text,
+    backgroundColor: 'white',
   },
   infoContainer: {
     marginTop: 24,
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
   infoText: {
-    fontSize: 16,
-    color: '#333',
-    marginTop: 20,
-    textAlign: 'center',
+    fontSize: 18,
+    color: colors.textDark,
+    marginBottom: 12,
   },
   dateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
-    marginTop: 8,
+    fontSize: 16,
+    color: colors.textDark,
+    marginLeft: 8,
+  },
+  agendamentoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
   },
 });

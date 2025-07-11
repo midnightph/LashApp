@@ -1,12 +1,12 @@
 import colors from "@/src/colors";
 import { getAuth } from "firebase/auth";
-import { MotiText } from "moti";
-import { ActivityIndicator, ImageBackground, SafeAreaView, Text, TextInput, Touchable, TouchableOpacity, View } from "react-native";
 import { sendPasswordResetEmail } from "firebase/auth/react-native";
+import { MotiText } from "moti";
 import { useState } from "react";
+import { ActivityIndicator, ImageBackground, SafeAreaView, Text, TextInput, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 
-export default function ForgotPassword() {
+export default function ForgotPassword({navigation} : any) {
 
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -32,7 +32,14 @@ export default function ForgotPassword() {
             setLoading(true);
             await sendPasswordResetEmail(auth, email);
             Toast.show({ type: 'success', text1: 'Email enviado com sucesso!', position: 'bottom' });
-        } catch (error: any) {
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+
+
+
+
+
+
+                    } catch (error: any) {
             const mensagem = traduzirErroFirebase(error.code);
             Toast.show({ type: 'error', text1: mensagem, position: 'bottom' });
         } finally {

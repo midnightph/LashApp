@@ -14,6 +14,7 @@ import { useState } from "react";
 import {
   Alert,
   Image,
+  ImageBackground,
   Linking,
   StyleSheet,
   Text,
@@ -46,9 +47,12 @@ export default function DetalhesMapping({ navigation, route }: any) {
     try {
       const ref1 = doc(database, "user", user.uid, "Clientes", clienteId, "Historico", id);
       const storagePath = item.foto;
-      const decodePath = decodeURIComponent(storagePath);
+      if(storagePath !== "https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445"){
+        const decodePath = decodeURIComponent(storagePath);
       const storageRef = ref(storage, decodePath);
       await deleteObject(storageRef);
+      }
+      
       
       await deleteDoc(ref1);
       await carregarClientes();
@@ -144,6 +148,7 @@ export default function DetalhesMapping({ navigation, route }: any) {
 
   return (
     <>
+    <ImageBackground source={require('../images/background.png')} style={{ flex: 1 }}>
     <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, gap: 10, marginTop: 10 }} from={{opacity: 0}} animate={{opacity: 1}} transition={{type: 'timing', duration: 1000}}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={35} color={colors.primary} />
@@ -165,24 +170,16 @@ export default function DetalhesMapping({ navigation, route }: any) {
           <Text style={styles.text}>Obs: {item.observacoes}</Text>
         )}
 
-        <TouchableOpacity onPress={confirmarExclusao} style={styles.button}>
-          <Text style={styles.buttonText}>Excluir atendimento</Text>
-        </TouchableOpacity>
+        <FormButton title="Excluir atendimento" onPress={confirmarExclusao} maxWidth={250} danger/>
 
-        <TouchableOpacity onPress={enviarTextoWhatsApp} style={styles.button}>
-          <Text style={styles.buttonText}>Enviar para a cliente?</Text>
-        </TouchableOpacity>
+        <FormButton title="Enviar para WhatsApp" onPress={enviarTextoWhatsApp} maxWidth={250} secondary/>
 
-        <TouchableOpacity
-          onPress={baixarECompartilharImagem}
-          style={[styles.button, { backgroundColor: colors.primaryDark }]}
-        >
-          <Text style={styles.buttonText}>Compartilhar imagem com a cliente</Text>
-        </TouchableOpacity>
+        <FormButton title="Compartilhar imagem" onPress={baixarECompartilharImagem} maxWidth={250} secondary/>
 
-        <FormButton title="Tirar foto" onPress={tirarFoto} maxWidth={200} />
+        <FormButton title="Tirar foto" onPress={tirarFoto} maxWidth={250} />
       </MotiView>
     </SafeAreaView>
+    </ImageBackground>
     </>
   );
 }
@@ -190,7 +187,6 @@ export default function DetalhesMapping({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF2F5",
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -210,11 +206,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   clientImage: {
-    width: 150,
-    height: 150,
+    width: 200,
+    height: 200,
     borderRadius: 100,
-    borderWidth: 3,
-    borderColor: colors.secondary,
     marginBottom: 10,
   },
   title: {

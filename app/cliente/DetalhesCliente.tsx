@@ -1,6 +1,7 @@
 import colors from '@/src/colors';
 import { database, getHistoricoUsuario } from '@/src/firebaseConfig';
 import FormButton from '@/src/FormButton';
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
@@ -12,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
 import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function DetalhesCliente({ route, navigation }: any) {
   const { cliente } = route.params;
@@ -31,7 +31,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
   const [showDataPicker, setShowDataPicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const [dateWithTime, setDateWithTime] = useState<Date | null>(null); // variável global data+hora combinadas
+  const [dateWithTime, setDateWithTime] = useState<Date | null>(null);
 
   const [inputFocused, setInputFocused] = useState(false);
   const [inputFocused2, setInputFocused2] = useState(false);
@@ -45,13 +45,36 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
   useEffect(() => {
     async function fetchHistoricoComId() {
+      setLoading(true);
       try {
         const historico = await getHistoricoUsuario(cliente.id);
-        setHistoricoComId(historico);
+
+        // Ordena por data decrescente e filtra os que têm data
+        const ordenado = historico
+          .filter(h => h.data)
+          .sort((a, b) => b.data.toDate() - a.data.toDate());
+
+        setHistoricoComId(ordenado);
+
+        // Verifica se os 3 últimos atendimentos foram nos últimos 4 meses
+        if (ordenado.length >= 3) {
+          const quatroMesesAtras = new Date();
+          quatroMesesAtras.setMonth(quatroMesesAtras.getMonth() - 4);
+
+          const ultimosTres = ordenado.slice(0, 3);
+          const todosDentroDoPrazo = ultimosTres.every(
+            item => item.data.toDate() >= quatroMesesAtras
+          );
+
+          setClienteFiel(todosDentroDoPrazo);
+        }
       } catch (e) {
         console.error('Erro ao buscar histórico:', e);
+      } finally {
+        setLoading(false);
       }
     }
+
     fetchHistoricoComId();
   }, []);
 
@@ -69,6 +92,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
       mapping: mapping,
       observacoes: observacoes || '',
       valor: valor,
+      telefone: cliente.telefone,
     };
 
     try {
@@ -79,7 +103,6 @@ export default function DetalhesCliente({ route, navigation }: any) {
       setDateWithTime(null);
       Toast.show({ type: 'info', text1: 'Agendamento realizado com sucesso!', position: 'bottom' });
       limparClientes();
-      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
     } catch (error) {
       console.log(error);
       Toast.show({ type: 'error', text1: 'Erro ao realizar agendamento', position: 'bottom' });
@@ -97,9 +120,12 @@ export default function DetalhesCliente({ route, navigation }: any) {
       valor: valor,
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445',
     };
+
     if (!proc) {
-      return await updateDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id), { statusProc: proc });
+      await updateDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id), { statusProc: proc });
+      return;
     }
+
     try {
       await addDoc(collection(database, 'user', user.uid, 'Clientes', cliente.id, 'Historico'), novoHistorico);
       await updateDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id), { statusProc: proc });
@@ -119,12 +145,12 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
     try {
       const result = await listAll(storageRef);
-      const promises = result.items.map((itemRef) => deleteObject(itemRef));
+      const promises = result.items.map(itemRef => deleteObject(itemRef));
       await Promise.all(promises);
 
       const historicoRef = collection(database, 'user', user.uid, 'Clientes', cliente.id, 'Historico');
       const querySnapshot = await getDocs(historicoRef);
-      const promisesHistorico = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      const promisesHistorico = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(promisesHistorico);
 
       await deleteDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id));
@@ -132,7 +158,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
       const agendamentosRef = collection(database, 'user', user.uid, 'Agendamentos');
       const q = query(agendamentosRef, where('clienteId', '==', cliente.clienteId));
       const querySnapshotAgendamentos = await getDocs(q);
-      const promisesAgendamentos = querySnapshotAgendamentos.docs.map((doc) => deleteDoc(doc.ref));
+      const promisesAgendamentos = querySnapshotAgendamentos.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(promisesAgendamentos);
 
       Toast.show({ type: 'info', text1: 'Cliente excluído com sucesso!', position: 'bottom' });
@@ -184,50 +210,49 @@ export default function DetalhesCliente({ route, navigation }: any) {
     await agendar(dateWithTime);
   };
 
-  useEffect(() => {
-    async function fetchHistoricoComId() {
-      setLoading(true);
-      try {
-        const historico = await getHistoricoUsuario(cliente.id);
-
-        // Ordena por data decrescente
-        const ordenado = historico
-          .filter(h => h.data)
-          .sort((a, b) => b.data.toDate() - a.data.toDate());
-
-        setHistoricoComId(ordenado);
-
-        // Verifica se os 3 últimos atendimentos foram nos últimos 4 meses
-        if (ordenado.length >= 3) {
-          const quatroMesesAtras = new Date();
-          quatroMesesAtras.setMonth(quatroMesesAtras.getMonth() - 4);
-
-          const ultimosTres = ordenado.slice(0, 3);
-          const todosDentroDoPrazo = ultimosTres.every(
-            item => item.data.toDate() >= quatroMesesAtras
-          );
-
-          setClienteFiel(todosDentroDoPrazo);
-        }
-      } catch (e) {
-        console.error('Erro ao buscar histórico:', e);
-      }
-
-      setLoading(false);
-    }
-
-    fetchHistoricoComId();
-  }, []);
-
   const iniciarAtendimento = async () => {
     if (!mapping || !valor) {
       Alert.alert('Erro', 'Preencha o mapeamento e o valor.');
       return;
     }
     setModalShown(false);
-    atualizarProc(true);
-
+    await atualizarProc(true);
   };
+
+  const iniciarAtendimentoAgenda = async () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const agendamentosRef = collection(database, 'user', user.uid, 'Agendamentos');
+  const q = query(agendamentosRef, where('clienteId', '==', cliente.clienteId));
+  const querySnapshot = await getDocs(q);
+
+  const agora = new Date();
+
+  // Pega só agendamentos futuros
+  const agendamentosFuturos = querySnapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(ag => ag.data && ag.data.toDate() > agora)
+    .sort((a, b) => a.data.toDate() - b.data.toDate()); // do mais próximo para o mais longe
+
+  const proximo = agendamentosFuturos[0];
+
+  if (!proximo) {
+    Toast.show({ type: 'error', text1: 'Nenhum agendamento futuro encontrado.', position: 'bottom' });
+    return;
+  }
+
+  setMapping(proximo.mapping || '');
+  setValor(proximo.valor || '');
+  setObservacoes(proximo.observacoes || '');
+  setDateWithTime(proximo.data?.toDate?.() || new Date());
+
+  // Excluir só o agendamento mais próximo
+  const proximoDocRef = doc(database, 'user', user.uid, 'Agendamentos', proximo.id);
+  await deleteDoc(proximoDocRef);
+
+  Toast.show({ type: 'info', text1: 'Próximo agendamento carregado!', position: 'bottom' });
+};
 
   return (
     <ImageBackground source={require('../images/background.png')} style={{ flex: 1 }}>
@@ -251,7 +276,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
             <View style={{ flexDirection: 'column', gap: 10 }}>
               {clienteFiel ? (
                 <>
-                  <Text style={{ fontSize: 24, color: '#FFD700', fontWeight: 'bold' }}>{cliente.name}</Text>
+                  <Text style={{ fontSize: 24, color: '#FFD700', fontWeight: 'bold' }}>{cliente.name.split(' ').slice(0, 2).join(' ')}</Text>
                   <Text style={{ fontSize: 16, color: colors.secondary, fontWeight: 'bold' }}>Cliente fiel</Text>
                 </>
               ) : (
@@ -272,7 +297,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
 
         </MotiView>
 
-        <MotiView style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }} from={{opacity: 0, translateY: 50}} animate={{opacity: 1, translateY: 0}} transition={{type: 'timing', duration: 1500}}>
+        <MotiView style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }} from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1500 }}>
           <Text style={{ fontSize: 18, color: colors.primary, fontWeight: 'bold', paddingBottom: 10 }}>Últimos atendimentos:</Text>
           <ScrollView style={{ borderTopColor: colors.primary, borderTopWidth: 1, maxHeight: 250 }}>
             {historicoComId.map((item) => (
@@ -394,7 +419,10 @@ export default function DetalhesCliente({ route, navigation }: any) {
                     onBlur={() => setInputFocused3(false)}
                     ref={observacoesRef}
                   />
-                  <FormButton title="Iniciar atendimento" onPress={iniciarAtendimento} />
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <FormButton title="Agenda" onPress={iniciarAtendimentoAgenda} secondary={true} maxWidth={130} />
+                    <FormButton title="Iniciar atendimento" onPress={iniciarAtendimento} maxWidth={185} />
+                  </View>
                 </View>
               </View>
             </Modal>
@@ -457,7 +485,7 @@ export default function DetalhesCliente({ route, navigation }: any) {
             </Modal>
           </View>
         )}
-        <MotiView style={{flex: 1}} from={{ opacity: 0}} animate={{ opacity: 1}} transition={{ type: 'timing', duration: 1000 }}>
+        <MotiView style={{ flex: 1 }} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }}>
           <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} />
         </MotiView>
       </SafeAreaView>

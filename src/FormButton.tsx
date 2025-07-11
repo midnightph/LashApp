@@ -2,16 +2,17 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import colors from '../src/colors';
 
-export default function FormButton({ title, onPress, secondary = false, maxWidth }: {
+export default function FormButton({ title, onPress, secondary = false, maxWidth, danger = false }: {
   title: string;
   onPress: () => void;
   secondary?: boolean;
   maxWidth?: number;
+  danger? : boolean
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.button, secondary && styles.secondaryButton, { maxWidth }]}
+      style={[styles.button, secondary && styles.secondaryButton, { maxWidth }, danger && styles.danger]}
     >
       <Text style={[styles.text, secondary && styles.secondaryText]}>{title}</Text>
     </TouchableOpacity>
@@ -42,4 +43,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
   },
+  danger: {
+    backgroundColor: colors.danger
+  }
 });

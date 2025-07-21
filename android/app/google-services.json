@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "326380062160",
+    "project_id": "adad-a313e",
+    "storage_bucket": "adad-a313e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326380062160:android:9258ce772b6df808e825d5",
+        "android_client_info": {
+          "package_name": "com.company.bea"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326380062160-n0q9rpbgbo166j8rpqkb0ij4nrsm6v9j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAh1MwUKsel1FwYlzDkHtSFEvq0rCyxPhw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326380062160-n0q9rpbgbo166j8rpqkb0ij4nrsm6v9j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+} 

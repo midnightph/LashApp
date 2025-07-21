@@ -1,21 +1,21 @@
 {
   "expo": {
     "name": "BEA",
-    "slug": "beauty-easy-app",
+    "slug": "bea",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "studio-lash",
-    "owner": "midnightph",
+    "owner": "midnight2606",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.LashApp", 
+      "bundleIdentifier": "com.company.bea",
       "buildNumber": "1.0.0"
     },
     "android": {
-      "package": "com.anonymous.LashApp",
+      "package": "com.company.bea",
       "versionCode": 1,
       "permissions": ["NOTIFICATIONS"],
       "adaptiveIcon": {
@@ -25,16 +25,13 @@
       "navigationBar": {
         "visible": true,
         "backgroundColor": "#FF69B4",
-        "barStyle": "transparent",
-        "barStyleOnEdge": "transparent",
-        "behavior": "normal"
+        "barStyle": "dark-content", 
+        "behavior": "inset-swipe"
       },
-      "edgeToEdgeEnabled": false,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -44,14 +41,20 @@
         {
           "image": "./assets/images/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#000"
+          "backgroundColor": "#000000"
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      ["expo-build-properties", {
+        "android": {
+          "gradlePluginVersion": "8.4.1",
+          "kotlinVersion": "2.0.21"
+        }
+      }]
     ],
     "extra": {
       "eas": {
-        "projectId": "SEU_PROJECT_ID_AQUI"
+        "projectId": "f26b9ad7-cf2f-4a8f-a6e1-6929c976d62e"
       }
     },
     "experiments": {

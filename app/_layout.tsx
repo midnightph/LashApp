@@ -25,6 +25,8 @@ import AI from "./cliente/Ai";
 import Profile from "./home/Profile";
 import Catalogo from "./catalogo/Catalogo";
 import ForgotPassword from "./forgotPassword/ForgotPassword";
+import FormularioAtendimento from "./formulario/Formulario";
+import Lembretes from "./lembretes/Lembretes";
 
 function TabNavigator() {
   return (
@@ -98,6 +100,8 @@ export default function RootLayout() {
             <Stack.Screen name="DetalhesMapping" component={DetalhesMapping} />
             <Stack.Screen name='Agenda' component={Agenda} />
             <Stack.Screen name='ForgotPassword' component={ForgotPassword} />
+            <Stack.Screen name='Formulario' component={FormularioAtendimento} />
+            <Stack.Screen name='Lembretes' component={Lembretes} />
           </Stack.Navigator>
           <Toast />
       </ClientesProvider>

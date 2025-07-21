@@ -9,6 +9,7 @@ import * as Sharing from "expo-sharing";
 import { getAuth } from "firebase/auth";
 import { deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { deleteObject, getStorage, ref } from "firebase/storage";
+import { get } from "lodash";
 import { MotiView } from "moti";
 import { useState } from "react";
 import {
@@ -137,12 +138,18 @@ export default function DetalhesMapping({ navigation, route }: any) {
     const resultado = await ImagePicker.launchCameraAsync({ quality: 0.4, base64: false });
 
     if (!resultado.canceled) {
+      const user = getAuth().currentUser;
       const uri = resultado.assets[0].uri;
-      const urlFirebase = await uploadImagem(uri, clienteId);
-      await updateDoc(doc(database, 'user', getAuth().currentUser.uid, 'Clientes', clienteId, 'Historico', id), { foto: urlFirebase });
-      await updateDoc(doc(database, 'user', getAuth().currentUser.uid, 'Clientes', clienteId), { foto: urlFirebase });
-      setImagem(urlFirebase);
-      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+      const urlFirebase = await uploadImagem(uri, clienteId, user.uid, id);
+      try{
+        await updateDoc(doc(database, 'user', user.uid, 'Clientes', clienteId, 'Historico', id), { foto: urlFirebase });
+        await updateDoc(doc(database, 'user', user.uid, 'Clientes', clienteId), { foto: urlFirebase });
+      } catch (error) {
+        console.error('Erro ao atualizar foto:', error);
+      } finally {
+        setImagem(urlFirebase);
+        navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+      }
     }
   }
 

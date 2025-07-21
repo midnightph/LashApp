@@ -1,4 +1,4 @@
-package com.anonymous.LashApp
+package com.company.bea
 
 import android.app.Application
 import android.content.res.Configuration

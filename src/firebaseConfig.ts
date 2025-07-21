@@ -73,15 +73,18 @@ async function getHistoricoUsuario(clienteId: string) {
 }
 
 
-async function uploadImagem(uri: string, clienteId: string): Promise<string> {
+async function uploadImagem(uri: string, clienteId: string, user: any, id: string): Promise<string> {
   const response = await fetch(uri);
   const blob = await response.blob();
 
-  const nomeArquivo = `clientes/${clienteId}/${Date.now()}.jpg`;
+  const nomeArquivo = `user/${user}/Clientes/${clienteId}/${id}.jpg`;
   const storageRef = ref(storage, nomeArquivo);
 
-  await uploadBytes(storageRef, blob);
-
+  try {
+    await uploadBytes(storageRef, blob);
+  } catch (error) {
+    console.error('Erro ao enviar imagem:', error);
+  }
   const url = await getDownloadURL(storageRef);
   return url; // URL pública da imagem
 }

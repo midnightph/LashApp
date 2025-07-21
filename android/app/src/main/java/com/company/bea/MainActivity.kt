@@ -1,4 +1,4 @@
-package com.anonymous.LashApp
+package com.company.bea
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

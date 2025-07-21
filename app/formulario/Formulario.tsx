@@ -1,46 +1,21 @@
 import React, { useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Switch,
-  Button,
+  View, Text, TextInput, TouchableOpacity, Modal, FlatList,
+  StyleSheet, ActivityIndicator, Alert, ScrollView, Switch, Button,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Signature from 'react-native-signature-canvas';
 import {
-  collection,
-  query,
-  where,
-  limit,
-  getDocs,
-  updateDoc,
-  doc,
-  arrayUnion,
+  collection, query, where, limit, getDocs,
+  getDoc, updateDoc, doc, arrayUnion,
 } from 'firebase/firestore';
 import {
-  getStorage,
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
+  getStorage, ref as storageRef, deleteObject, uploadBytes, getDownloadURL,
 } from 'firebase/storage';
-import { debounce } from 'lodash';
 import { database, auth } from '../../src/firebaseConfig';
+import { debounce } from 'lodash';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Função para converter base64 em Blob (compatível com React Native)
-async function base64ToBlob(base64: string, contentType = 'image/png') {
-  const response = await fetch(`data:${contentType};base64,${base64}`);
-  const blob = await response.blob();
-  return blob;
-}
+import * as FileSystem from 'expo-file-system';
 
 export default function FormularioAtendimento() {
   const [nome, setNome] = useState('');
@@ -60,30 +35,34 @@ export default function FormularioAtendimento() {
 
   const signatureRef = useRef<any>(null);
 
+  // converte base64 para Blob via arquivo temporário
+  async function base64ToBlob(dataURL: string) {
+    const [, base64] = dataURL.split(',');
+    const path = FileSystem.cacheDirectory + 'assinatura.png';
+    await FileSystem.writeAsStringAsync(path, base64, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return await fetch(path).then(r => r.blob());
+  }
+
+  // busca clientes com debounce…
   const debouncedSearch = useRef(
     debounce(async (text: string) => {
-      if (text.length < 2) {
-        setClientes([]);
-        setLoading(false);
-        return;
-      }
+      if (text.length < 2) { setClientes([]); setLoading(false); return; }
       setLoading(true);
-      if (!auth) {
-        Alert.alert('Usuário não logado');
-        setLoading(false);
-        return;
-      }
+      const user = auth.currentUser;
+      if (!user) { Alert.alert('Usuário não autenticado'); setLoading(false); return; }
       try {
         const q = query(
-          collection(database, 'user', auth.uid, 'Clientes'),
+          collection(database, 'user', user.uid, 'Clientes'),
           where('name', '>=', text),
           where('name', '<=', text + '\uf8ff'),
           limit(10)
         );
         const snap = await getDocs(q);
-        setClientes(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+        setClientes(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
       } catch (e: any) {
-        Alert.alert('Erro na busca:', e.message);
+        Alert.alert('Erro na busca', e.message);
       } finally {
         setLoading(false);
       }
@@ -95,40 +74,50 @@ export default function FormularioAtendimento() {
     debouncedSearch(text);
   };
 
-  const handleSignature = (sig: string) => {
+  const handleSignature = async (sig: string) => {
     setAssinatura(sig);
-    Alert.alert('Assinatura capturada com sucesso!');
+    Alert.alert('Assinatura capturada!');
+    await handleConfirmar(sig);
   };
 
-  const handleSalvarAssinatura = () => {
-    signatureRef.current?.readSignature();
-  };
-
-  const handleConfirmar = async () => {
-    if (!clienteId || !procedimento || !cuidados || !assinatura) {
+  const handleConfirmar = async (sig: string) => {
+    if (!clienteId || !procedimento || !sig) {
       Alert.alert('Preencha todos os campos e assine o termo.');
       return;
     }
-
-    if (!auth) {
+    const user = auth.currentUser;
+    if (!user) {
       Alert.alert('Usuário não autenticado.');
       return;
     }
 
     try {
-      // Upload da assinatura convertendo base64 em Blob
       const storage = getStorage();
-      const imgRef = storageRef(storage, `assinaturas/${clienteId}.png`);
-      const b64 = assinatura.replace(/^data:image\/png;base64,/, '');
+      const clientPath = `user/${user.uid}/Assinaturas/${clienteId}.png`;
+      const imgRef = storageRef(storage, clientPath);
 
-      const blob = await base64ToBlob(b64);
+      // 1) tenta deletar arquivo antigo (se existir)
+      try {
+        await deleteObject(imgRef);
+      } catch {
+        // ignora erro caso não exista
+      }
 
-      await uploadBytes(imgRef, blob, { contentType: 'image/png' });
+      // 2) busca doc e filtra atendimentos antigos deste procedimento
+      const clienteDocRef = doc(database, 'user', user.uid, 'Clientes', clienteId);
+      const clienteSnap = await getDoc(clienteDocRef);
+      const existing = clienteSnap.data()?.formularioAtendimento || [];
+      const filtered = existing.filter((at: any) => at.procedimento !== procedimento);
+      // atualiza array sem o antigo
+      await updateDoc(clienteDocRef, { formularioAtendimento: filtered });
+
+      // 3) converte dataURL para Blob e faz upload
+      const blob = await base64ToBlob(sig);
+      await uploadBytes(imgRef, blob);
       const url = await getDownloadURL(imgRef);
 
-      // Cria objeto de atendimento
+      // 4) adiciona o novo atendimento
       const novo = {
-        nome,
         procedimento,
         gravida,
         alergia,
@@ -137,16 +126,12 @@ export default function FormularioAtendimento() {
         assinaturaURL: url,
         criadoEm: new Date(),
       };
-
-      // Atualiza o array formularioAtendimento no doc da cliente
-      const clienteDoc = doc(database, 'user', auth.uid, 'Clientes', clienteId);
-      await updateDoc(clienteDoc, {
+      await updateDoc(clienteDocRef, {
         formularioAtendimento: arrayUnion(novo),
       });
 
-      Alert.alert('Atendimento salvo com sucesso!');
-
-      // Limpa o formulário
+      Alert.alert('Atendimento atualizado com sucesso!');
+      // limpa estado
       setNome('');
       setClienteId(null);
       setProcedimento('');
@@ -156,11 +141,11 @@ export default function FormularioAtendimento() {
       setCuidados(false);
       setAssinatura(null);
     } catch (err: any) {
-      Alert.alert('Erro ao salvar:', err.message);
-      console.log(err);
+      console.error(err);
+      Alert.alert('Erro ao salvar', err.message || err.toString());
     }
   };
-
+  
   return (
     <SafeAreaView style={{ flex: 1 }}>
       {/* Modal de Busca */}
@@ -178,13 +163,13 @@ export default function FormularioAtendimento() {
             {loading && <ActivityIndicator size="small" color="#C62368" />}
             <FlatList
               data={clientes}
-              keyExtractor={(i) => i.id}
+              keyExtractor={i => i.id}
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.clienteItem}
                   onPress={() => {
-                    setNome(item.name);
+                    setNome(item.name);     // atribui o campo 'name'
                     setClienteId(item.id);
                     setModalVisible(false);
                     setSearchTerm('');
@@ -221,7 +206,7 @@ export default function FormularioAtendimento() {
         <Picker
           selectedValue={procedimento}
           style={styles.input}
-          onValueChange={(v) => setProcedimento(v)}
+          onValueChange={v => setProcedimento(v as string)}
         >
           <Picker.Item label="Selecione" value="" />
           <Picker.Item label="Extensão de cílios" value="Extensão de cílios" />
@@ -229,17 +214,22 @@ export default function FormularioAtendimento() {
           <Picker.Item label="Limpeza de pele" value="Limpeza de pele" />
         </Picker>
 
-        <Text style={styles.label}>Está grávida?</Text>
-        <Switch value={gravida} onValueChange={setGravida} />
-
-        <Text style={styles.label}>Tem alergia conhecida?</Text>
-        <Switch value={alergia} onValueChange={setAlergia} />
-
-        <Text style={styles.label}>Usa lentes de contato?</Text>
-        <Switch value={lentes} onValueChange={setLentes} />
-
-        <Text style={styles.label}>Cliente está ciente dos cuidados?</Text>
-        <Switch value={cuidados} onValueChange={setCuidados} />
+        <View style={styles.switchRow}>
+          <Text style={styles.label}>Está grávida?</Text>
+          <Switch value={gravida} onValueChange={setGravida} />
+        </View>
+        <View style={styles.switchRow}>
+          <Text style={styles.label}>Tem alergia conhecida?</Text>
+          <Switch value={alergia} onValueChange={setAlergia} />
+        </View>
+        <View style={styles.switchRow}>
+          <Text style={styles.label}>Usa lentes de contato?</Text>
+          <Switch value={lentes} onValueChange={setLentes} />
+        </View>
+        <View style={styles.switchRow}>
+          <Text style={styles.label}>Cliente ciente dos cuidados?</Text>
+          <Switch value={cuidados} onValueChange={setCuidados} />
+        </View>
 
         <Text style={styles.label}>Termo de Responsabilidade</Text>
         <Text style={styles.termo}>
@@ -267,15 +257,15 @@ export default function FormularioAtendimento() {
           />
         </View>
 
-        <View style={{ marginBottom: 20 }}>
+        <View style={{ marginVertical: 10, marginBottom: 20 }}>
           <Button
-            title="Salvar Assinatura"
-            onPress={() => signatureRef.current?.readSignature()}
+            title="Confirmar e Enviar"
             color="#C62368"
+            onPress={() => {
+              signatureRef.current?.readSignature(); // isso dispara o handleSignature
+            }}
           />
         </View>
-
-        <Button title="Confirmar e Enviar" onPress={handleConfirmar} color="#C62368" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -283,7 +273,7 @@ export default function FormularioAtendimento() {
 
 const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: '#FFF2F5' },
-  label: { fontSize: 16, fontWeight: '600', marginTop: 15, color: '#C62368' },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 5, color: '#C62368' },
   input: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -314,4 +304,5 @@ const styles = StyleSheet.create({
   },
   clienteItem: { paddingVertical: 10, borderBottomColor: '#ddd', borderBottomWidth: 1 },
   clienteText: { fontSize: 16, color: '#333' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
 });

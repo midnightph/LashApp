@@ -5,10 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
-import { deleteObject, getStorage, listAll, ref } from 'firebase/storage';
+import { deleteObject, getMetadata, getStorage, listAll, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ImageBackground, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ImageBackground, Linking, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
@@ -137,16 +137,42 @@ export default function DetalhesCliente({ route, navigation }: any) {
     }
   };
 
+
   const excluirCliente = async () => {
     const user = getAuth().currentUser;
     const storage = getStorage();
-    const pastaCliente = `clientes/${cliente.id}/`;
+    const pastaCliente = `user/${user.uid}/Clientes/${cliente.id}/`;
     const storageRef = ref(storage, pastaCliente);
 
+    const pastaAssinatura = `user/${user.uid}/Assinaturas/${cliente.id}.png`;
+    const storageRefAssinatura = ref(storage, pastaAssinatura);
+
+    if (!user) {
+      return Toast.show({ type: 'error', text1: 'Erro ao excluir cliente', position: 'bottom' });
+    }
+
     try {
-      const result = await listAll(storageRef);
-      const promises = result.items.map(itemRef => deleteObject(itemRef));
-      await Promise.all(promises);
+      if (cliente.foto === "https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445") {
+
+      } else {
+        const result = await listAll(storageRef);
+        const promises = result.items.map(itemRef => deleteObject(itemRef));
+        await Promise.all(promises);
+      }
+
+      try {
+        // Verifica se a assinatura existe
+        await getMetadata(storageRefAssinatura);
+
+        // Se não deu erro, então o arquivo existe, pode excluir
+        await deleteObject(storageRefAssinatura);
+      } catch (error) {
+        if (error.code === 'storage/object-not-found') {
+          console.log('Nenhuma assinatura para excluir.');
+        } else {
+          console.error('Erro ao verificar ou excluir assinatura:', error);
+        }
+      }
 
       const historicoRef = collection(database, 'user', user.uid, 'Clientes', cliente.id, 'Historico');
       const querySnapshot = await getDocs(historicoRef);
@@ -220,39 +246,39 @@ export default function DetalhesCliente({ route, navigation }: any) {
   };
 
   const iniciarAtendimentoAgenda = async () => {
-  const auth = getAuth();
-  const user = auth.currentUser;
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-  const agendamentosRef = collection(database, 'user', user.uid, 'Agendamentos');
-  const q = query(agendamentosRef, where('clienteId', '==', cliente.clienteId));
-  const querySnapshot = await getDocs(q);
+    const agendamentosRef = collection(database, 'user', user.uid, 'Agendamentos');
+    const q = query(agendamentosRef, where('clienteId', '==', cliente.clienteId));
+    const querySnapshot = await getDocs(q);
 
-  const agora = new Date();
+    const agora = new Date();
 
-  // Pega só agendamentos futuros
-  const agendamentosFuturos = querySnapshot.docs
-    .map(doc => ({ id: doc.id, ...doc.data() }))
-    .filter(ag => ag.data && ag.data.toDate() > agora)
-    .sort((a, b) => a.data.toDate() - b.data.toDate()); // do mais próximo para o mais longe
+    // Pega só agendamentos futuros
+    const agendamentosFuturos = querySnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(ag => ag.data && ag.data.toDate() > agora)
+      .sort((a, b) => a.data.toDate() - b.data.toDate()); // do mais próximo para o mais longe
 
-  const proximo = agendamentosFuturos[0];
+    const proximo = agendamentosFuturos[0];
 
-  if (!proximo) {
-    Toast.show({ type: 'error', text1: 'Nenhum agendamento futuro encontrado.', position: 'bottom' });
-    return;
-  }
+    if (!proximo) {
+      Toast.show({ type: 'error', text1: 'Nenhum agendamento futuro encontrado.', position: 'bottom' });
+      return;
+    }
 
-  setMapping(proximo.mapping || '');
-  setValor(proximo.valor || '');
-  setObservacoes(proximo.observacoes || '');
-  setDateWithTime(proximo.data?.toDate?.() || new Date());
+    setMapping(proximo.mapping || '');
+    setValor(proximo.valor || '');
+    setObservacoes(proximo.observacoes || '');
+    setDateWithTime(proximo.data?.toDate?.() || new Date());
 
-  // Excluir só o agendamento mais próximo
-  const proximoDocRef = doc(database, 'user', user.uid, 'Agendamentos', proximo.id);
-  await deleteDoc(proximoDocRef);
+    // Excluir só o agendamento mais próximo
+    const proximoDocRef = doc(database, 'user', user.uid, 'Agendamentos', proximo.id);
+    await deleteDoc(proximoDocRef);
 
-  Toast.show({ type: 'info', text1: 'Próximo agendamento carregado!', position: 'bottom' });
-};
+    Toast.show({ type: 'info', text1: 'Próximo agendamento carregado!', position: 'bottom' });
+  };
 
   return (
     <ImageBackground source={require('../images/background.png')} style={{ flex: 1 }}>
@@ -348,27 +374,32 @@ export default function DetalhesCliente({ route, navigation }: any) {
           <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente)} secondary={true} maxWidth={170} />
 
           {showDataPicker && (
-            <DateTimePicker
-              value={dateWithTime || new Date()}
-              mode="date"
-              display="default"
-              onChange={onDateChange}
-            />
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={dateWithTime || new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDateChange}
+                style={styles.picker}
+              />
+            </View>
           )}
 
           {showTimePicker && (
-            <DateTimePicker
-              value={dateWithTime || new Date()}
-              mode="time"
-              display="default"
-              onChange={onTimeChange}
-            />
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={dateWithTime || new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onTimeChange}
+                style={styles.picker}
+              />
+            </View>
           )}
         </MotiView>
 
-        {/* Modal para iniciar atendimento */}
         {modalShown && (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
             <Modal
               animationType="slide"
               transparent={true}
@@ -377,6 +408,8 @@ export default function DetalhesCliente({ route, navigation }: any) {
                 setModalShown(false);
                 setAtendimento(false);
               }}
+              supportedOrientations={['portrait']} // Bloqueia orientação para portrait (iOS)
+              presentationStyle="overFullScreen" // para modal aparecer melhor no iOS
             >
               <View style={{ padding: 20, flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                 <View
@@ -437,6 +470,9 @@ export default function DetalhesCliente({ route, navigation }: any) {
               transparent={true}
               visible={modalShown1}
               onRequestClose={() => setModalShown1(false)}
+              supportedOrientations={['portrait']}
+              presentationStyle="overFullScreen"
+              style={{ flex: 1 }}
             >
               <View style={{ padding: 20, flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                 <View
@@ -499,4 +535,21 @@ const styles = StyleSheet.create({
   nome: { fontSize: 24, fontWeight: 'bold' },
   input: { backgroundColor: colors.cardBackground, borderWidth: 1, borderColor: colors.secondary, padding: 10, borderRadius: 10, color: colors.primaryDark },
   inputFocused: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.primary, padding: 10, borderRadius: 10 },
+  pickerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    // sombra pra parecer modal deslizando (iOS)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10, // para android
+  },
+  picker: {
+    width: '100%',
+  },
 });

@@ -13,6 +13,7 @@ export default function Menus({ navigation }: any) {
     const [whatsapp, setWhatsapp] = useState('');
     const { clientes } = useClientes();
     const [nome, setNome] = useState('');
+    const [sobrenome, setSobrenome] = useState('');
     const [telefone, setTelefone] = useState('');
     const handleEnviarLembretes = () => {
         enviarLembretesEmLote(clientes, telefone);
@@ -39,6 +40,7 @@ export default function Menus({ navigation }: any) {
                 if (snapshot.exists()) {
                     const dados = snapshot.data();
                     setNome(dados.nome);
+                    setSobrenome(dados.sobrenome);
                     setTelefone(dados.telefone);
                 } else {
                     console.log('Documento não encontrado');
@@ -60,7 +62,7 @@ export default function Menus({ navigation }: any) {
                             <Users size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Clientes</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Profile', { nome, telefone })}>
+                        <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Profile', { nome, telefone, sobrenome })}>
                             <User size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Perfil</Text>
                         </TouchableOpacity>
@@ -72,6 +74,10 @@ export default function Menus({ navigation }: any) {
                             <Calendar size={40} color='#E8B4B4' />
                             <Text style={styles.title}>Agenda</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.menus} onPress={() => navigation.navigate('Formulario')}>
+                            <Calendar size={40} color='#E8B4B4' />
+                            <Text style={styles.title}>Formulario</Text>
+                        </TouchableOpacity> 
                     </View>
                     <Button title='Sair' onPress={() => { signOutApp() }} />
                 </View>

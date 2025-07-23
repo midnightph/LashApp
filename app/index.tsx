@@ -92,7 +92,7 @@ export default function Login({ navigation }: any) {
 
             <TextInput
               placeholder="Email"
-              placeholderTextColor={colors.primary}
+              placeholderTextColor={colors.secondary}
               style={styles.input}
               value={email}
               onChangeText={setEmail}
@@ -105,7 +105,7 @@ export default function Login({ navigation }: any) {
             <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Senha"
-                placeholderTextColor={colors.primary}
+                placeholderTextColor={colors.secondary}
                 style={[styles.input, { flex: 1, marginBottom: 0 }]}
                 value={password}
                 onChangeText={setPassword}

@@ -89,10 +89,9 @@ export default function AddCliente({ navigation }: any) {
           contentContainerStyle={{
             flexGrow: 1,
             paddingBottom: tabBarHeight,
-            paddingHorizontal: 0
           }}
         >
-          <FormButton title="Adicionar cliente" onPress={() => setShowForm(!showForm)} secondary />
+          <FormButton title="Adicionar cliente" onPress={() => setShowForm(!showForm)} />
           <AnimatePresence>
             {showForm && (
               <MotiView

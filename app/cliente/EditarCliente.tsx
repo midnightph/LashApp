@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Button, TextInput, TouchableOpacity } from "react-native";
 import { View, Text } from "react-native";
 import MaskInput, { Masks } from "react-native-mask-input";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function EditarCliente({ navigation, route }: any) {
@@ -34,7 +35,7 @@ export default function EditarCliente({ navigation, route }: any) {
     }
 
     return (
-        <View style={{ flex: 1, paddingHorizontal: 20, backgroundColor: colors.background }}>
+        <SafeAreaView style={{ flex: 1, paddingHorizontal: 20, backgroundColor: colors.background }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 }}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}>
@@ -72,6 +73,6 @@ export default function EditarCliente({ navigation, route }: any) {
                     updateCliente(cliente.id, { name: nome, telefone: telefone });
                     }} maxWidth={200} />
             </View>
-        </View>
+        </SafeAreaView>
     );
 }

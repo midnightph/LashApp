@@ -17,16 +17,16 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 import colors from "@/src/colors";
-import { Home, Menu, Users } from 'lucide-react-native';
+import { Calendar, Home, Menu, Users } from 'lucide-react-native';
 import { useEffect } from "react";
 import { View } from 'react-native';
 import Agenda from "./agenda/Agenda";
 import AI from "./cliente/Ai";
-import Profile from "./home/Profile";
+import EditarCliente from "./cliente/EditarCliente";
 import ForgotPassword from "./ForgotPassword";
 import FormularioAtendimento from "./formulario/Formulario";
+import Profile from "./home/Profile";
 import Lembretes from "./lembretes/Lembretes";
-import EditarCliente from "./cliente/EditarCliente";
 
 function TabNavigator() {
   return (
@@ -59,6 +59,7 @@ function TabNavigator() {
           if (route.name === 'Home') Icon = Home;
           else if (route.name === 'ClienteScreen') Icon = Users;
           else if (route.name === 'Menus') Icon = Menu;
+          else if (route.name === 'Agenda') Icon = Calendar;
 
           return (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

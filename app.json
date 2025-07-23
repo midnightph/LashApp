@@ -22,12 +22,6 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#000000"
       },
-      "navigationBar": {
-        "visible": true,
-        "backgroundColor": "#FF69B4",
-        "barStyle": "dark-content", 
-        "behavior": "inset-swipe"
-      },
       "googleServicesFile": "./google-services.json"
     },
     "web": {

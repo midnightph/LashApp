@@ -1,19 +1,19 @@
-import colors from "../../src/colors";
-import { database } from "../../src/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { getAuth } from "firebase/auth/react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
   FlatList,
+  ImageBackground,
   Linking,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import colors from "../../src/colors";
+import { database } from "../../src/firebaseConfig";
 
 export default function Lembretes({ navigation }: any) {
   const [lembretes, setLembretes] = useState([]);
@@ -92,11 +92,18 @@ export default function Lembretes({ navigation }: any) {
         </View>
 
         {isLoading ? (
+          <>
           <Text>Carregando...</Text>
+          </>
         ) : (
           <>
+          ({lembretes.length === 0 && aniversariantes.length === 0}) ? (
+            <>
+            <Text style={{ textAlign: "center", marginTop: 20 }}>Não há lembretes para hoje!</Text>
+            </>
+          ) : (
             {lembretes.length > 0 && (
-              <>
+              <View style={{flex: 1}}>
                 <Text style={styles.sectionTitle}>📅 Agendamentos para amanhã:</Text>
                 <FlatList
                   data={lembretes}
@@ -121,11 +128,11 @@ export default function Lembretes({ navigation }: any) {
                     </TouchableOpacity>
                   )}
                 />
-              </>
-            )}
+              </View>
+            )})
 
             {aniversariantes.length > 0 && (
-              <>
+              <View style={{flex: 1}}>
                 <Text style={styles.sectionTitle}>🎉 Aniversariantes de hoje:</Text>
                 <FlatList
                   data={aniversariantes}
@@ -144,7 +151,7 @@ export default function Lembretes({ navigation }: any) {
                     </TouchableOpacity>
                   )}
                 />
-              </>
+              </View>
             )}
           </>
         )}
@@ -174,11 +181,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.secondary,
     marginBottom: 10,
-    marginTop: 20,
+    marginTop: 10,
   },
   card: {
     marginBottom: 10,
-    backgroundColor: colors.background,
+    backgroundColor: colors.cardBackground,
     borderWidth: 1,
     borderColor: colors.secondary,
     borderRadius: 10,

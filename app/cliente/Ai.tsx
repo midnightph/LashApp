@@ -1,12 +1,17 @@
 import colors from '@/src/colors';
+import { database } from '@/src/firebaseConfig';
 import FormButton from '@/src/FormButton';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { getAuth } from 'firebase/auth';
+import { updateDoc, doc, increment, getDoc, arrayUnion } from 'firebase/firestore';
 import { MotiImage, MotiScrollView } from 'moti';
 import React, { useState } from 'react';
-import { ActivityIndicator, ImageBackground, Text, View } from 'react-native';
+import { ActivityIndicator, ImageBackground, Text, Touchable, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
-export default function AI({ route }) {
+export default function AI({ route, navigation }) {
   const { clienteId } = route.params;
   const [image, setImage] = useState(null);
   const [landmarks, setLandmarks] = useState(null);
@@ -42,7 +47,76 @@ export default function AI({ route }) {
       type: 'image/jpeg',
     });
 
+    const user = getAuth().currentUser;
+
+    function formatDate(date) {
+      // só ano-mês-dia para comparar datas (sem hora)
+      return date.toISOString().split('T')[0];
+    }
+
+
+    async function updateAiUses() {
+      const user = getAuth().currentUser;
+      if (!user) return false;
+
+      const userDocRef = doc(database, 'user', user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        // documento não existe (raro)
+        await updateDoc(userDocRef, {
+          IA: [{ date: formatDate(new Date()), uses: 1 }],
+        });
+        return true;
+      }
+
+      const data = docSnap.data();
+      const IAArray = data.IA || [];
+
+      const todayStr = formatDate(new Date());
+      const todayEntryIndex = IAArray.findIndex(entry => entry.date === todayStr);
+
+      if (todayEntryIndex === -1) {
+        // não tem registro para hoje, adiciona novo objeto
+        await updateDoc(userDocRef, {
+          IA: arrayUnion({ date: todayStr, uses: 1 }),
+        });
+        return true;
+      }
+
+      const todayEntry = IAArray[todayEntryIndex];
+
+      if (todayEntry.uses >= 4) {
+        // já usou 4 vezes hoje, bloqueia uso
+        return false;
+      }
+
+      // Atualizar o uso para hoje (incrementar 1)
+      // Como Firestore não permite atualizar item dentro do array diretamente,
+      // temos que regravar o array inteiro com o uso atualizado.
+
+      const updatedIAArray = [...IAArray];
+      updatedIAArray[todayEntryIndex] = {
+        date: todayStr,
+        uses: todayEntry.uses + 1,
+      };
+
+      await updateDoc(userDocRef, {
+        IA: updatedIAArray,
+      });
+
+      return true;
+    }
+
     try {
+      const canUse = await updateAiUses();
+      if (!canUse) {
+        return Toast.show({
+          type: 'error',
+          text1: 'Limite de uso diário atingido!',
+          position: 'bottom',
+        });
+      }
       const res = await fetch('https://lash-mapping-326380062160.us-central1.run.app/detect', {
         method: 'POST',
         body: formData,
@@ -84,6 +158,12 @@ export default function AI({ route }) {
   return (
     <ImageBackground source={require('../images/background.png')} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ padding: 20, alignItems: 'center', flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={35} color={colors.primary} />
+          </TouchableOpacity>
+           <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.secondary }}>IA (Somente para cílios)</Text>
+        </View>
         <MotiScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -142,8 +222,8 @@ export default function AI({ route }) {
             </View>
           )}
 
-          <FormButton title="Escolher imagem" onPress={pickImage} maxWidth={300} secondary/>
-          <FormButton title="Tirar foto" onPress={takeShot} maxWidth={300}/>
+          <FormButton title="Escolher imagem" onPress={pickImage} maxWidth={300} secondary />
+          <FormButton title="Tirar foto" onPress={takeShot} maxWidth={300} />
         </MotiScrollView>
       </SafeAreaView>
     </ImageBackground>

@@ -20,6 +20,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -181,6 +182,7 @@ export default function DetalhesMapping({ navigation, route }: any) {
         source={require("../images/background.png")}
         style={{ flex: 1 }}
       >
+        <SafeAreaView style={{flex: 1}}>
         <MotiView
           style={{
             flexDirection: "row",
@@ -194,15 +196,15 @@ export default function DetalhesMapping({ navigation, route }: any) {
           transition={{ type: "timing", duration: 1000 }}
         >
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={35} color={colors.primary} />
+            <Ionicons name="arrow-back" size={35} color={colors.secondary} />
           </TouchableOpacity>
           <Text
-            style={{ fontSize: 25, fontWeight: "bold", color: colors.primary }}
+            style={{ fontSize: 25, fontWeight: "bold", color: colors.secondary }}
           >
             Perfil
           </Text>
         </MotiView>
-        <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <MotiView
             style={styles.card}
             from={{ opacity: 0, translateY: 20 }}
@@ -240,6 +242,7 @@ export default function DetalhesMapping({ navigation, route }: any) {
 
             <FormButton title="Tirar foto" onPress={tirarFoto} maxWidth={250} />
           </MotiView>
+        </View>
         </SafeAreaView>
       </ImageBackground>
     </>
@@ -265,7 +268,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
-    width: "100%",
+    width: "85%",
+    alignSelf: "center",
   },
   clientImage: {
     width: 200,

@@ -22,12 +22,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device'; // ✅ novo
+import * as Device from 'expo-device';
 
 import colors from '@/src/colors';
 import { database } from '../../src/firebaseConfig';
 import AddCliente from '../../src/screens/functions/addCliente';
 import { useClientes } from '../../src/screens/functions/ClientesContext';
+import { Calendar, FolderCode, NotebookIcon } from 'lucide-react-native';
 
 export default function App({ navigation }: any) {
   const { clientes, carregarClientes, atualizarUltimosClientes } = useClientes();
@@ -36,7 +37,6 @@ export default function App({ navigation }: any) {
   const [nome, setNome] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Novo método atualizado para obter token e pedir permissão
   async function registerForPushNotificationsAsync() {
     if (!Device.isDevice) {
       alert('Push notifications só funcionam em dispositivos físicos.');
@@ -92,7 +92,7 @@ export default function App({ navigation }: any) {
     };
 
     fetchClientes();
-    registerForPushNotificationsAsync(); // ✅ Agora funciona corretamente
+    registerForPushNotificationsAsync();
   }, []);
 
   useFocusEffect(
@@ -132,42 +132,119 @@ export default function App({ navigation }: any) {
   }, [clientes, atualizarUltimosClientes]);
 
   return (
-    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 500 }} style={{ flex: 1 }}>
-      <ImageBackground source={require('../images/background.png')} resizeMode="cover" style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1 }}>
+    <ImageBackground source={require('../images/background.png')} style={styles.background}>
+      <MotiView
+        from={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ type: 'timing', duration: 500 }}
+        style={styles.flex1}
+      >
+        <SafeAreaView style={styles.flex1}>
           <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-            <View style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.flex1}
+          >
+            <View style={styles.flex1}>
               {isLoading && (
-                <View style={{ position: 'absolute', zIndex: 2, top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                  <ActivityIndicator size="large" color={colors.primary} />
+                <View style={styles.loadingOverlay}>
+                  <ActivityIndicator size="large" color={colors.secondary} />
                 </View>
               )}
-              <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="always">
-                <MotiView from={{ opacity: 0, translateY: 30 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500 }} style={[styles.container, { paddingTop: insets.top }]}>
-                  <MotiText from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100, type: 'timing' }} style={{ fontSize: 24, fontWeight: 'bold', color: colors.secondary, marginBottom: 8, marginHorizontal: 15 }}>
-                    👋 Bem-vindo(a) ao Studio Lash!
+              <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="always">
+                <MotiView
+                  from={{ opacity: 0, translateY: 30 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 500 }}
+                  style={[styles.container, { paddingTop: insets.top + 10 }]}
+                >
+                  {/* Título */}
+                  <MotiText
+                    from={{ opacity: 0, translateY: -10 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 100, type: 'timing' }}
+                    style={styles.title}
+                  >
+                    👋 Bem-vindo(a) ao BEA!
                   </MotiText>
 
-                  <MotiText from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 200, type: 'timing' }} style={{ fontSize: 16, color: colors.textDark, marginBottom: 4, marginHorizontal: 15 }}>
+                  {/* Barra de navegação com ícones + labels */}
+                  <MotiView
+                    from={{ opacity: 0, translateY: -10 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 150, type: 'timing' }}
+                    style={styles.iconBar}
+                  >
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Agenda')}
+                      style={styles.iconButton}
+                      accessibilityLabel="Ir para Agenda"
+                      accessibilityRole="button"
+                    >
+                      <Calendar size={28} color={colors.primary} />
+                      <Text style={styles.iconLabel}>Agenda</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Formulario')}
+                      style={styles.iconButton}
+                      accessibilityLabel="Ir para Formulário"
+                      accessibilityRole="button"
+                    >
+                      <FolderCode size={28} color={colors.primary} />
+                      <Text style={styles.iconLabel}>Formulário</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Lembretes')}
+                      style={styles.iconButton}
+                      accessibilityLabel="Ir para Lembretes"
+                      accessibilityRole="button"
+                    >
+                      <NotebookIcon size={28} color={colors.primary} />
+                      <Text style={styles.iconLabel}>Lembretes</Text>
+                    </TouchableOpacity>
+                  </MotiView>
+
+                  {/* Subtítulo */}
+                  <MotiText
+                    from={{ opacity: 0, translateY: -10 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 200, type: 'timing' }}
+                    style={styles.subTitle}
+                  >
                     Últimos clientes atendidos:
                   </MotiText>
 
-                  <View style={{ paddingTop: 10 }}>
+                  {/* Lista horizontal de clientes */}
+                  <View style={styles.listWrapper}>
                     <FlatList
                       horizontal
                       data={ultimosClientes}
                       keyExtractor={(item) => item.id}
                       renderItem={({ item, index }) => (
-                        <MotiView from={{ opacity: 0, translateX: 50 }} animate={{ opacity: 1, translateX: 0 }} transition={{ delay: 300 + index * 100, type: 'timing' }}>
-                          <TouchableOpacity style={styles.cardCliente} onPress={() => navigation.navigate('DetalhesCliente', { cliente: item })}>
+                        <MotiView
+                          from={{ opacity: 0, translateX: 50 }}
+                          animate={{ opacity: 1, translateX: 0 }}
+                          transition={{ delay: 300 + index * 100, type: 'timing' }}
+                        >
+                          <TouchableOpacity
+                            style={styles.cardCliente}
+                            onPress={() => navigation.navigate('DetalhesCliente', { cliente: item })}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Detalhes do cliente ${item.name}`}
+                          >
                             <Image source={{ uri: item.foto }} style={styles.clientImage} />
-                            <Text style={[styles.clienteNome]}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
+                            <Text style={styles.clienteNome}>
+                              {item.name.split(' ').slice(0, 2).join(' ')}
+                            </Text>
                             <Text style={styles.clienteProcedimento}>{item.proc}</Text>
                             <Text style={styles.clienteData}>
                               {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
                             </Text>
-                            {item.statusProc && <Text style={styles.clienteAtendimento}>Em atendimento</Text>}
+                            {item.statusProc && (
+                              <Text style={styles.clienteAtendimento}>Em atendimento</Text>
+                            )}
                           </TouchableOpacity>
                         </MotiView>
                       )}
@@ -176,7 +253,13 @@ export default function App({ navigation }: any) {
                     />
                   </View>
 
-                  <MotiView from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 600, type: 'timing' }} style={{ paddingHorizontal: 30 }}>
+                  {/* Botão adicionar cliente */}
+                  <MotiView
+                    from={{ opacity: 0, translateY: 50 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 600, type: 'timing' }}
+                    style={styles.addClienteWrapper}
+                  >
                     <AddCliente />
                   </MotiView>
                 </MotiView>
@@ -184,54 +267,136 @@ export default function App({ navigation }: any) {
             </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </ImageBackground>
-    </MotiView>
+      </MotiView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  flex1: {
+    flex: 1,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    zIndex: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
   container: {
-    flex: 1
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: colors.secondary,
+    marginVertical: 12,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  iconBar: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+
+    // Sombra leve para destacar a barra
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  iconButton: {
+    alignItems: 'center',
+    width: 70,
+  },
+  iconLabel: {
+    fontSize: 12,
+    color: colors.primaryDark,
+    marginTop: 6,
+    fontWeight: '600',
+  },
+  subTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.title,
+    marginBottom: 15,
+    alignSelf: 'center',
+  },
+  listWrapper: {
+    paddingBottom: 15,
+  },
+  listContainer: {
+    paddingHorizontal: 5,
   },
   cardCliente: {
     backgroundColor: colors.cardBackground,
     borderRadius: 20,
-    padding: 15,
-    width: 200,
-    height: 250,
-    marginBottom: 5,
-    marginRight: 15,
+    paddingVertical: 18,
+    paddingHorizontal: 15,
+    width: 210,
+    height: 260,
+    marginRight: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.primary
+    borderColor: colors.primary,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 5,
   },
   clientImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 12,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   clienteNome: {
-    color: colors.primary,
-    fontSize: 16,
+    color: colors.secondary,
     fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 18,
+    marginBottom: 6,
+    textAlign: 'center',
   },
   clienteProcedimento: {
     color: colors.title,
     fontSize: 14,
+    textAlign: 'center',
   },
   clienteData: {
     color: colors.title,
     fontSize: 12,
-    marginTop: 6,
+    marginTop: 8,
   },
   clienteAtendimento: {
     color: colors.success,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: '600',
   },
-  listContainer: {
-    paddingLeft: 15,
+  addClienteWrapper: {
+    paddingHorizontal: 15,
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
 });

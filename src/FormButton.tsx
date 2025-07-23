@@ -23,10 +23,14 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     paddingVertical: 14,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondary,
     borderRadius: 20,
     alignItems: 'center',
-    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   text: {
     color: colors.background,
@@ -36,12 +40,12 @@ const styles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: colors.cardBackground,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.secondary,
   },
   secondaryText: {
     fontSize: 16,
+    color: colors.secondary,
     fontWeight: 'bold',
-    color: colors.primary,
   },
   danger: {
     backgroundColor: colors.danger

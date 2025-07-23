@@ -1,11 +1,11 @@
 import colors from '@/src/colors';
-import { app, database, getHistoricoUsuario } from '@/src/firebaseConfig';
+import { database, getHistoricoUsuario } from '@/src/firebaseConfig';
 import FormButton from '@/src/FormButton';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
-import { deleteObject, getMetadata, getStorage, list, listAll, ref } from 'firebase/storage';
+import { deleteObject, getStorage, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ImageBackground, Linking, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -16,7 +16,6 @@ import { gerarReciboPDF } from '../../src/screens/functions/gerarRecibo';
 import { EllipsisVertical } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
-import { set } from 'lodash';
 import { Picker } from '@react-native-picker/picker';
 
 export default function DetalhesCliente({ route, navigation }: any) {
@@ -119,6 +118,10 @@ export default function DetalhesCliente({ route, navigation }: any) {
       valor: valor,
       telefone: cliente.telefone,
     };
+
+    if (data < new Date()) {
+      return Toast.show({ type: 'error', text1: 'Data inválida', position: 'bottom' });
+    }
 
     try {
       await addDoc(collection(database, 'user', user.uid, 'Agendamentos'), agendamento);
@@ -325,6 +328,7 @@ const excluirCliente = async () => {
     setValor(proximo.valor || '');
     setObservacoes(proximo.observacoes || '');
     setDateWithTime(proximo.data?.toDate?.() || new Date());
+    setProcedimentoSelecionado(proximo.procedimento || '');
 
     // Excluir só o agendamento mais próximo
     const proximoDocRef = doc(database, 'user', user.uid, 'Agendamentos', proximo.id);
@@ -430,11 +434,11 @@ const excluirCliente = async () => {
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 20 }}>
         <MotiView style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 }} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={35} color={colors.primary} />
+            <Ionicons name="arrow-back" size={35} color={colors.secondary} />
           </TouchableOpacity>
-          <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.primary }}>Detalhes Cliente</Text>
+          <Text style={{ fontSize: 25, fontWeight: 'bold', color: colors.secondary }}>Detalhes Cliente</Text>
           <TouchableOpacity style={{ position: 'absolute', right: 0 }} onPress={() => setMenuVisible(true)}>
-            <EllipsisVertical size={35} color={colors.primary} />
+            <EllipsisVertical size={30} color={colors.secondary} />
           </TouchableOpacity>
         </MotiView>
 
@@ -463,7 +467,7 @@ const excluirCliente = async () => {
               )
               }
               <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${cliente.telefone}`)}>
-                <Text style={{ fontSize: 18, color: colors.title, textDecorationLine: 'underline', fontWeight: 'bold' }}>
+                <Text style={{ fontSize: 18, color: colors.title, textDecorationLine: 'underline' }}>
                   {cliente.telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')}
                 </Text>
               </TouchableOpacity>
@@ -474,8 +478,8 @@ const excluirCliente = async () => {
 
         </MotiView>
 
-        <MotiView style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20 }} from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1500 }}>
-          <Text style={{ fontSize: 18, color: colors.primary, fontWeight: 'bold', paddingBottom: 10 }}>Últimos atendimentos:</Text>
+        <MotiView style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 10, marginTop: 20, borderWidth: 1, borderColor: colors.primary }} from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1500 }}>
+          <Text style={{ fontSize: 18, color: colors.textDark, paddingBottom: 10 }}>Últimos atendimentos:</Text>
           <ScrollView style={{ borderTopColor: colors.primary, borderTopWidth: 1, maxHeight: 250 }}>
             {historicoComId.map((item) => (
               <TouchableOpacity
@@ -483,7 +487,7 @@ const excluirCliente = async () => {
                 onPress={() => navigation.navigate('DetalhesMapping', { item, clienteId: cliente.id, id: item.id })}
                 style={{ borderBottomColor: colors.primary, borderBottomWidth: 1, padding: 10 }}
               >
-                <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 16 }}>Mapping: {item.mapping}</Text>
+                <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 16 }}>Procedimento: {item.procedimento}</Text>
                 <Text style={{ color: colors.textDark }}>Valor: {item.valor}</Text>
                 <Text style={{ color: colors.textDark }}>Data: {item.data?.toDate().toLocaleDateString()}</Text>
                 <Text style={{ color: colors.textDark }}>Observações: {item.observacoes || 'Nenhuma observação'}</Text>
@@ -523,7 +527,7 @@ const excluirCliente = async () => {
           />
         </MotiView>
 
-        <MotiView from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1000 }} style={{ flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center' }}>
+        <MotiView from={{ opacity: 0, translateY: 50 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 1000 }} style={{ flexDirection: 'row', gap: 10, marginVertical: 10, justifyContent: 'center' }}>
           <FormButton title="Agendar" onPress={() => setShowDataPicker(true)} secondary={true} maxWidth={170} />
           <FormButton title="Gerar recibo" onPress={() => gerarReciboPDF(cliente)} secondary={true} maxWidth={170} />
 
@@ -631,6 +635,7 @@ const excluirCliente = async () => {
                     style={[styles.input, inputFocused && styles.inputFocused]}
                     onFocus={() => setInputFocused(true)}
                     onBlur={() => setInputFocused(false)}
+                    placeholderTextColor={colors.textDark}
                     onSubmitEditing={() => setTimeout(() => valorRef.current?.focus(), 100)}
                   />
                   <TextInput
@@ -642,6 +647,7 @@ const excluirCliente = async () => {
                     onBlur={() => setInputFocused2(false)}
                     keyboardType="numeric"
                     ref={valorRef}
+                    placeholderTextColor={colors.textDark}
                     onSubmitEditing={() => setTimeout(() => observacoesRef.current?.focus(), 100)}
                   />
                   <TextInput
@@ -652,6 +658,7 @@ const excluirCliente = async () => {
                     onFocus={() => setInputFocused3(true)}
                     onBlur={() => setInputFocused3(false)}
                     ref={observacoesRef}
+                    placeholderTextColor={colors.textDark}
                   />
                   <View style={{ flexDirection: 'row', gap: 10 }}>
                     <FormButton title="Agenda" onPress={iniciarAtendimentoAgenda} secondary={true} maxWidth={130} />
@@ -705,6 +712,7 @@ const excluirCliente = async () => {
                     onFocus={() => setInputFocused(true)}
                     onBlur={() => setInputFocused(false)}
                     onSubmitEditing={() => setTimeout(() => valorRef.current?.focus(), 100)}
+                    placeholderTextColor={colors.textDark}
                   />
                   <TextInput
                     placeholder="Valor"
@@ -716,6 +724,7 @@ const excluirCliente = async () => {
                     keyboardType="numeric"
                     ref={valorRef}
                     onSubmitEditing={() => setTimeout(() => observacoesRef.current?.focus(), 100)}
+                    placeholderTextColor={colors.textDark}
                   />
                   <TextInput
                     placeholder="Observações(opcional)"
@@ -725,6 +734,7 @@ const excluirCliente = async () => {
                     onFocus={() => setInputFocused3(true)}
                     onBlur={() => setInputFocused3(false)}
                     ref={observacoesRef}
+                    placeholderTextColor={colors.textDark}
                   />
                   <FormButton title="Confirmar" onPress={confirmarAgendamento} />
                 </View>
@@ -732,8 +742,8 @@ const excluirCliente = async () => {
             </Modal>
           </View>
         )}
-        <MotiView style={{ flex: 1 }} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }}>
-          <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} />
+        <MotiView style={{ flex: 1, alignItems: 'center' }} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 1000 }}>
+          <FormButton title="AI" onPress={() => navigation.navigate('Ai', { clienteId: cliente.id })} secondary={false} maxWidth={350} />
         </MotiView>
       </SafeAreaView>
     </ImageBackground>
@@ -742,7 +752,7 @@ const excluirCliente = async () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#FFF2F5' },
-  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5 },
+  image: { width: 180, height: 180, borderRadius: 100, marginBottom: 5, borderWidth: 1, borderColor: colors.secondary },
   nome: { fontSize: 24, fontWeight: 'bold' },
   input: { backgroundColor: colors.cardBackground, borderWidth: 1, borderColor: colors.secondary, padding: 10, borderRadius: 10, color: colors.primaryDark },
   inputFocused: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.primary, padding: 10, borderRadius: 10 },

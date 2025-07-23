@@ -5,6 +5,7 @@ import { MotiText } from "moti";
 import { useState } from "react";
 import { ActivityIndicator, ImageBackground, SafeAreaView, Text, TextInput, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
+import { StyleSheet } from "react-native";
 
 export default function ForgotPassword({navigation} : any) {
 
@@ -33,12 +34,6 @@ export default function ForgotPassword({navigation} : any) {
             await sendPasswordResetEmail(auth, email);
             Toast.show({ type: 'success', text1: 'Email enviado com sucesso!', position: 'bottom' });
             navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-
-
-
-
-
-
                     } catch (error: any) {
             const mensagem = traduzirErroFirebase(error.code);
             Toast.show({ type: 'error', text1: mensagem, position: 'bottom' });
@@ -62,7 +57,7 @@ export default function ForgotPassword({navigation} : any) {
                         paddingHorizontal: 16,
                         color: colors.textDark,
                         borderWidth: 2,
-                        borderColor: colors.primary,
+                        borderColor: colors.secondary,
                     }}
                     value={email}
                     onChangeText={setEmail}
@@ -70,15 +65,76 @@ export default function ForgotPassword({navigation} : any) {
                     autoComplete="email"
                     textContentType="emailAddress"
                 />
-                {loading ? (
-                    <ActivityIndicator size="large" color={colors.background} />
-                ) : (
-                    <TouchableOpacity onPress={forgotPassword}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.background }}>Recuperar senha</Text>
-                </TouchableOpacity>
-                )}
+                <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={forgotPassword} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={colors.secondary} />
+              ) : (
+                <Text style={styles.buttonText}>Recuperar senha</Text>
+              )}
+            </TouchableOpacity>
                 
             </SafeAreaView>
         </ImageBackground>
     );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inner: {
+    width: '85%',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.secondary,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    color: colors.textDark,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 16,
+  },
+  eyeButton: {
+    paddingHorizontal: 12,
+  },
+  button: {
+    width: '100%',
+    paddingVertical: 14,
+    backgroundColor: colors.secondary,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: colors.primary,
+  },
+  buttonText: {
+    color: colors.background,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  linkButton: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.background,
+  },
+});

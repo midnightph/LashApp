@@ -12,14 +12,14 @@ const styles = StyleSheet.create({
         fontWeight: 600,
     },
     dados: {
-        backgroundColor: '#E8B4B4',
+        backgroundColor: colors.secondary,
     },
     bigButton: {
         backgroundColor: 'white',
         marginHorizontal: 15,
         padding: 15,
         borderRadius: 20,
-        shadowColor: '#E8B4B4',
+        shadowColor: colors.secondary,
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 4 },
         shadowRadius: 12,
@@ -35,11 +35,13 @@ const styles = StyleSheet.create({
         marginTop: 15,
         borderRadius: 20,
         backgroundColor: colors.cardBackground,
-        shadowColor: '#E8B4B4',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 12,
-        paddingBottom: 10
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+        paddingBottom: 10,
+
     },
     textInput: {
         color: colors.title,
@@ -60,7 +62,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     sendForm: {
-        backgroundColor: '#E8B4B4',  // Cor do botão// Espaçamento dentro do botão
+        backgroundColor: colors.secondary,  // Cor do botão// Espaçamento dentro do botão
         borderRadius: 20,            // Bordas arredondadas
         display: 'flex',
         justifyContent: 'center',

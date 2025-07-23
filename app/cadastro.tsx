@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase/firestore';
 import { MotiText, MotiView } from 'moti';
 import { useRef, useState } from 'react';
 import {
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -46,6 +47,7 @@ export default function Cadastro({ navigation }: any) {
   };
 
   return (
+    <ImageBackground source={require('../app/images/background.png')} style={{ flex: 1 }}>
     <SafeAreaView style={styles.safe}>
     <StatusBar barStyle="dark-content" backgroundColor="#FFF2F5" />
       <KeyboardAvoidingView
@@ -137,13 +139,13 @@ export default function Cadastro({ navigation }: any) {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
@@ -155,22 +157,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.secondary,
     marginBottom: 30,
   },
   input: {
     width: '100%',
-    height: 44,
-    borderWidth: 1,
+    height: 50,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    color: colors.textDark,
+    borderWidth: 2,
     borderColor: colors.secondary,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    backgroundColor: colors.cardBackground,
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
 });

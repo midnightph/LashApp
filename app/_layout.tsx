@@ -27,6 +27,8 @@ import ForgotPassword from "./ForgotPassword";
 import FormularioAtendimento from "./formulario/Formulario";
 import Profile from "./home/Profile";
 import Lembretes from "./lembretes/Lembretes";
+import InfoClientes from "./informacoes/InfoClientes";
+import Procedimentos from "./procedimentos/Procedimentos";
 
 function TabNavigator() {
   return (
@@ -53,7 +55,7 @@ function TabNavigator() {
           borderTopWidth: 0,
         },
         tabBarIcon: ({ color, size, focused }) => {
-          const iconSize = focused ? size + 4 : size;
+          const iconSize = focused ? 35 : 30;
           const colorsa = focused ? colors.secondary :colors.primary;
           let Icon;
           if (route.name === 'Home') Icon = Home;
@@ -104,6 +106,8 @@ export default function RootLayout() {
             <Stack.Screen name='Formulario' component={FormularioAtendimento} />
             <Stack.Screen name='Lembretes' component={Lembretes} />
             <Stack.Screen name='EditarCliente' component={EditarCliente} />
+            <Stack.Screen name='InfoClientes' component={InfoClientes} />
+            <Stack.Screen name='Procedimentos' component={Procedimentos} />
           </Stack.Navigator>
           <Toast />
       </ClientesProvider>

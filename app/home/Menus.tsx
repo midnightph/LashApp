@@ -13,12 +13,15 @@ import { auth, database } from "../../src/firebaseConfig";
 import { useClientes } from "../../src/screens/functions/ClientesContext";
 import colors from "@/src/colors";
 import {
+  BanknoteArrowUp,
+  BookOpenCheck,
   Calendar,
   FolderCode,
   NotebookIcon,
   User,
   Users,
 } from "lucide-react-native";
+import React from "react";
 
 export default function Menus({ navigation }: any) {
   const { clientes } = useClientes();
@@ -63,12 +66,12 @@ export default function Menus({ navigation }: any) {
           <View style={styles.grid}>
             <TouchableOpacity
               style={styles.menuCard}
-              onPress={() => navigation.navigate("DetalhesCliente")}
+              onPress={() => navigation.navigate("InfoClientes")}
               accessibilityRole="button"
               accessibilityLabel="Clientes"
             >
-              <Users size={48} color={colors.primary} />
-              <Text style={styles.menuText}>Clientes</Text>
+              <BanknoteArrowUp size={48} color={colors.primary} />
+              <Text style={styles.menuText}>Faturamento</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -111,6 +114,16 @@ export default function Menus({ navigation }: any) {
             >
               <FolderCode size={48} color={colors.primary} />
               <Text style={styles.menuText}>Formulário</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuCard}
+              onPress={() => navigation.navigate("Procedimentos")}
+              accessibilityRole="button"
+              accessibilityLabel="Novo Processo"
+            >
+              <BookOpenCheck size={48} color={colors.primary} />
+              <Text style={styles.menuText}>Procedimentos</Text>
             </TouchableOpacity>
           </View>
         </View>

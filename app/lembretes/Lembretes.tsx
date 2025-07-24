@@ -10,10 +10,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../src/colors";
 import { database } from "../../src/firebaseConfig";
+import { MotiView } from "moti";
 
 export default function Lembretes({ navigation }: any) {
   const [lembretes, setLembretes] = useState([]);
@@ -33,7 +35,6 @@ export default function Lembretes({ navigation }: any) {
       const amanha = new Date();
       amanha.setDate(hoje.getDate() + 1);
 
-      // 🔔 Agendamentos
       const lembretesAmanha: any[] = [];
       const agendamentoRef = collection(database, "user", uid, "Agendamentos");
       const agendamentoSnapshot = await getDocs(agendamentoRef);
@@ -51,7 +52,6 @@ export default function Lembretes({ navigation }: any) {
         }
       });
 
-      // 🎉 Aniversariantes
       const aniversariantesHoje: any[] = [];
       const clienteRef = collection(database, "user", uid, "Clientes");
       const clienteSnapshot = await getDocs(clienteRef);
@@ -92,68 +92,81 @@ export default function Lembretes({ navigation }: any) {
         </View>
 
         {isLoading ? (
-          <>
-          <Text>Carregando...</Text>
-          </>
+          <ActivityIndicator size="large" color={colors.secondary} style={{ marginTop: 50 }} />
         ) : (
-          <>
-          ({lembretes.length === 0 && aniversariantes.length === 0}) ? (
-            <>
-            <Text style={{ textAlign: "center", marginTop: 20 }}>Não há lembretes para hoje!</Text>
-            </>
-          ) : (
-            {lembretes.length > 0 && (
-              <View style={{flex: 1}}>
-                <Text style={styles.sectionTitle}>📅 Agendamentos para amanhã:</Text>
-                <FlatList
-                  data={lembretes}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.card}
-                      onPress={() =>
-                        Linking.openURL(
-                          `https://wa.me/55${item.telefone.replace(/\D/g, "")}?text=Ol%C3%A1%20${item.nomeCliente}%2C%20poder%C3%A1%20confirmar%20o%20seu%20hor%C3%A1rio%20no%20dia%20${item.data
-                            .toDate()
-                            .toLocaleDateString()}%20%C3%A0s%20${item.data
-                            .toDate()
-                            .toLocaleTimeString()
-                            .slice(0, 5)}?%20😊`
-                        )
-                      }
-                    >
-                      <Text>Nome: {item.nomeCliente}</Text>
-                      <Text>Data: {item.data.toDate().toLocaleDateString()}</Text>
-                      <Text>Horário: {item.data.toDate().toLocaleTimeString().slice(0, 5)}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              </View>
-            )})
+          <MotiView
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 500 }}
+            style={{ flex: 1 }}
+          >
+            {lembretes.length === 0 && aniversariantes.length === 0 ? (
+              <Text style={{ textAlign: "center", marginTop: 20 }}>
+                Não há lembretes para hoje!
+              </Text>
+            ) : (
+              <>
+                {lembretes.length > 0 && (
+                  <View>
+                    <Text style={styles.sectionTitle}>📅 Agendamentos para amanhã:</Text>
+                    <FlatList
+                      data={lembretes}
+                      keyExtractor={(item) => item.id}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.card}
+                          onPress={() =>
+                            Linking.openURL(
+                              `https://wa.me/55${item.telefone.replace(/\D/g, "")}?text=Ol%C3%A1%20${item.nomeCliente}%2C%20poder%C3%A1%20confirmar%20o%20seu%20hor%C3%A1rio%20no%20dia%20${item.data
+                                .toDate()
+                                .toLocaleDateString()}%20%C3%A0s%20${item.data
+                                .toDate()
+                                .toLocaleTimeString()
+                                .slice(0, 5)}?%20😊`
+                            )
+                          }
+                        >
+                          <Text>Nome: {item.nomeCliente}</Text>
+                          <Text>Data: {item.data.toDate().toLocaleDateString()}</Text>
+                          <Text>
+                            Horário: {item.data.toDate().toLocaleTimeString().slice(0, 5)}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                )}
 
-            {aniversariantes.length > 0 && (
-              <View style={{flex: 1}}>
-                <Text style={styles.sectionTitle}>🎉 Aniversariantes de hoje:</Text>
-                <FlatList
-                  data={aniversariantes}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.card}
-                      onPress={() =>
-                        Linking.openURL(
-                          `https://wa.me/55${item.telefone.replace(/\D/g, "")}?text=Parab%C3%A9ns%20${item.name}%20pelo%20seu%20anivers%C3%A1rio!%20🎉🎂`
-                        )
-                      }
-                    >
-                      <Text>Nome: {item.name}</Text>
-                      <Text>Nascimento: {item.dataNasc.toDate().toLocaleDateString()}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              </View>
+                {aniversariantes.length > 0 && (
+                  <View>
+                    <Text style={styles.sectionTitle}>🎉 Aniversariantes de hoje:</Text>
+                    <FlatList
+                      data={aniversariantes}
+                      keyExtractor={(item) => item.id}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.card}
+                          onPress={() =>
+                            Linking.openURL(
+                              `https://wa.me/55${item.telefone.replace(
+                                /\D/g,
+                                ""
+                              )}?text=Parab%C3%A9ns%20${item.name}%20pelo%20seu%20anivers%C3%A1rio!%20🎉🎂`
+                            )
+                          }
+                        >
+                          <Text>Nome: {item.name}</Text>
+                          <Text>
+                            Nascimento: {item.dataNasc.toDate().toLocaleDateString()}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                )}
+              </>
             )}
-          </>
+          </MotiView>
         )}
       </SafeAreaView>
     </ImageBackground>

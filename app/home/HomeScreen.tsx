@@ -131,6 +131,73 @@ export default function App({ navigation }: any) {
     }
   }, [clientes, atualizarUltimosClientes]);
 
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const user = getAuth().currentUser;
+        if (!user) return;
+
+        const docRef = doc(database, 'user', user.uid);
+        const snapshot = await getDoc(docRef);
+
+        if (snapshot.exists()) {
+          const dados = snapshot.data();
+          setNome(dados.nome);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar cliente do usuário logado:', error);
+      }
+    };
+
+    fetchClientes();
+    registerForPushNotificationsAsync();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      const carregar = async () => {
+        try {
+          await carregarClientes();
+        } catch (error) {
+          if (isMounted) {
+            Toast.show({
+              type: 'error',
+              text1: 'Erro ao carregar clientes: ' + error,
+              position: 'bottom',
+            });
+          }
+        } finally {
+          if (isMounted) setIsLoading(false);
+        }
+      };
+
+      carregar();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  useEffect(() => {
+    if (clientes.length > 0) {
+      const atualizados = atualizarUltimosClientes();
+      setUltimosClientes(atualizados);
+      AsyncStorage.setItem('ultimosClientes', JSON.stringify(atualizados));
+    }
+  }, [clientes]);
+
+  // ✅ Se ainda está carregando, não renderiza nada além do loader
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+      </View>
+    );
+  }
+
   return (
     <ImageBackground source={require('../images/background.png')} style={styles.background}>
       <MotiView
@@ -145,126 +212,90 @@ export default function App({ navigation }: any) {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             style={styles.flex1}
           >
-            <View style={styles.flex1}>
-              {isLoading && (
-                <View style={styles.loadingOverlay}>
-                  <ActivityIndicator size="large" color={colors.secondary} />
-                </View>
-              )}
-              <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="always">
+            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="always">
+              <MotiView style={[styles.container, { paddingTop: insets.top + 10 }]}>
+                <MotiText
+                  from={{ opacity: 0, translateY: -10 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing' }}
+                  style={styles.title}
+                >
+                  👋 Bem-vindo(a) ao BEA!
+                </MotiText>
+
+                {/* Barra com ícones */}
                 <MotiView
-                  from={{ opacity: 0, translateY: 30 }}
+                  from={{ opacity: 0, translateY: -10 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 250}}
+                  style={styles.iconBar}
+                >
+                  <TouchableOpacity onPress={() => navigation.navigate('Agenda')} style={styles.iconButton}>
+                    <Calendar size={28} color={colors.primary} />
+                    <Text style={styles.iconLabel}>Agenda</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('Formulario')} style={styles.iconButton}>
+                    <FolderCode size={28} color={colors.primary} />
+                    <Text style={styles.iconLabel}>Formulário</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('Lembretes')} style={styles.iconButton}>
+                    <NotebookIcon size={28} color={colors.primary} />
+                    <Text style={styles.iconLabel}>Lembretes</Text>
+                  </TouchableOpacity>
+                </MotiView>
+
+                <MotiText
+                  from={{ opacity: 0, translateY: -10 }}
                   animate={{ opacity: 1, translateY: 0 }}
                   transition={{ type: 'timing', duration: 500 }}
-                  style={[styles.container, { paddingTop: insets.top + 10 }]}
+                  style={styles.subTitle}
                 >
-                  {/* Título */}
-                  <MotiText
-                    from={{ opacity: 0, translateY: -10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 100, type: 'timing' }}
-                    style={styles.title}
-                  >
-                    👋 Bem-vindo(a) ao BEA!
-                  </MotiText>
+                  Últimos clientes atendidos:
+                </MotiText>
 
-                  {/* Barra de navegação com ícones + labels */}
-                  <MotiView
-                    from={{ opacity: 0, translateY: -10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 150, type: 'timing' }}
-                    style={styles.iconBar}
-                  >
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Agenda')}
-                      style={styles.iconButton}
-                      accessibilityLabel="Ir para Agenda"
-                      accessibilityRole="button"
-                    >
-                      <Calendar size={28} color={colors.primary} />
-                      <Text style={styles.iconLabel}>Agenda</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Formulario')}
-                      style={styles.iconButton}
-                      accessibilityLabel="Ir para Formulário"
-                      accessibilityRole="button"
-                    >
-                      <FolderCode size={28} color={colors.primary} />
-                      <Text style={styles.iconLabel}>Formulário</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Lembretes')}
-                      style={styles.iconButton}
-                      accessibilityLabel="Ir para Lembretes"
-                      accessibilityRole="button"
-                    >
-                      <NotebookIcon size={28} color={colors.primary} />
-                      <Text style={styles.iconLabel}>Lembretes</Text>
-                    </TouchableOpacity>
-                  </MotiView>
-
-                  {/* Subtítulo */}
-                  <MotiText
-                    from={{ opacity: 0, translateY: -10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 200, type: 'timing' }}
-                    style={styles.subTitle}
-                  >
-                    Últimos clientes atendidos:
-                  </MotiText>
-
-                  {/* Lista horizontal de clientes */}
-                  <View style={styles.listWrapper}>
-                    <FlatList
-                      horizontal
-                      data={ultimosClientes}
-                      keyExtractor={(item) => item.id}
-                      renderItem={({ item, index }) => (
-                        <MotiView
-                          from={{ opacity: 0, translateX: 50 }}
-                          animate={{ opacity: 1, translateX: 0 }}
-                          transition={{ delay: 300 + index * 100, type: 'timing' }}
+                {/* Lista horizontal de clientes */}
+                <View style={styles.listWrapper}>
+                  <FlatList
+                    horizontal
+                    data={ultimosClientes}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item, index }) => (
+                      <MotiView
+                        from={{ opacity: 0, translateX: 200 }}
+                        animate={{ opacity: 1, translateX: 0 }}
+                        transition={{ type: 'timing', duration: 750 }}
+                      >
+                        <TouchableOpacity
+                          style={styles.cardCliente}
+                          onPress={() => navigation.navigate('DetalhesCliente', { cliente: item })}
                         >
-                          <TouchableOpacity
-                            style={styles.cardCliente}
-                            onPress={() => navigation.navigate('DetalhesCliente', { cliente: item })}
-                            accessibilityRole="button"
-                            accessibilityLabel={`Detalhes do cliente ${item.name}`}
-                          >
-                            <Image source={{ uri: item.foto }} style={styles.clientImage} />
-                            <Text style={styles.clienteNome}>
-                              {item.name.split(' ').slice(0, 2).join(' ')}
-                            </Text>
-                            <Text style={styles.clienteProcedimento}>{item.proc}</Text>
-                            <Text style={styles.clienteData}>
-                              {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
-                            </Text>
-                            {item.statusProc && (
-                              <Text style={styles.clienteAtendimento}>Em atendimento</Text>
-                            )}
-                          </TouchableOpacity>
-                        </MotiView>
-                      )}
-                      contentContainerStyle={styles.listContainer}
-                      showsHorizontalScrollIndicator={false}
-                    />
-                  </View>
+                          <Image source={{ uri: item.foto }} style={styles.clientImage} />
+                          <Text style={styles.clienteNome}>{item.name.split(' ').slice(0, 2).join(' ')}</Text>
+                          <Text style={styles.clienteProcedimento}>{item.proc}</Text>
+                          <Text style={styles.clienteData}>
+                            {new Date(item.dataNasc.seconds * 1000).toLocaleDateString()}
+                          </Text>
+                          {item.statusProc && (
+                            <Text style={styles.clienteAtendimento}>Em atendimento</Text>
+                          )}
+                        </TouchableOpacity>
+                      </MotiView>
+                    )}
+                    contentContainerStyle={styles.listContainer}
+                    showsHorizontalScrollIndicator={false}
+                  />
+                </View>
 
-                  {/* Botão adicionar cliente */}
-                  <MotiView
-                    from={{ opacity: 0, translateY: 50 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 600, type: 'timing' }}
-                    style={styles.addClienteWrapper}
-                  >
-                    <AddCliente />
-                  </MotiView>
+                <MotiView
+                  from={{ opacity: 0, translateY: 50 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 1000}}
+                  style={styles.addClienteWrapper}
+                >
+                  <AddCliente />
                 </MotiView>
-              </ScrollView>
-            </View>
+              </MotiView>
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </MotiView>
@@ -312,6 +343,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+    borderColor: colors.primary,
+    borderWidth: 1,
 
     // Sombra leve para destacar a barra
     shadowColor: colors.shadow,

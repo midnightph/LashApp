@@ -261,6 +261,7 @@ export default function FormularioAtendimento({ navigation }: any) {
               onChangeText={handleSearchChange}
               autoFocus
               accessibilityLabel="Campo para buscar cliente"
+              placeholderTextColor={colors.primary}
             />
             {loadingClientes && <ActivityIndicator size="small" color={colors.secondary} />}
             <FlatList

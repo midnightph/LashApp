@@ -4,7 +4,7 @@ import FormButton from '@/src/FormButton';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getAuth } from 'firebase/auth';
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { deleteObject, getStorage, ref } from 'firebase/storage';
 import { MotiView } from 'moti';
 import React, { useEffect, useRef, useState } from 'react';
@@ -137,9 +137,21 @@ export default function DetalhesCliente({ route, navigation }: any) {
     }
   };
 
+  function getSemanaId(date = new Date()) {
+    const firstDay = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDay.getTime()) / 86400000;
+    const weekNumber = Math.ceil((pastDaysOfYear + firstDay.getDay() + 1) / 7);
+    return `${date.getFullYear()}-${weekNumber.toString().padStart(2, '0')}`;
+  }
+
+  // Função principal para atualizar o procedimento
   const atualizarProc = async (proc: boolean) => {
     const auth = getAuth();
     const user = auth.currentUser;
+
+    if (!user?.uid) {
+      return Toast.show({ type: 'error', text1: 'Usuário não autenticado', position: 'bottom' });
+    }
 
     const novoHistorico = {
       data: Timestamp.now(),
@@ -150,102 +162,134 @@ export default function DetalhesCliente({ route, navigation }: any) {
       foto: 'https://www.rastelliparis.com.br/cdn/shop/files/259F7269-2915-4F81-B903-B4C3AB1C2E51.jpg?v=1721635769&width=1445',
     };
 
+    const clienteRef = doc(database, 'user', user.uid, 'Clientes', cliente.id);
+
+    // Atualiza o status mesmo se não for procedimento
     if (!proc) {
-      await updateDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id), { statusProc: proc });
+      await updateDoc(clienteRef, { statusProc: proc });
       return;
     }
 
     try {
-      await addDoc(collection(database, 'user', user.uid, 'Clientes', cliente.id, 'Historico'), novoHistorico);
-      await updateDoc(doc(database, 'user', user.uid, 'Clientes', cliente.id), { statusProc: proc });
+      // Adiciona histórico do cliente
+      await addDoc(collection(clienteRef, 'Historico'), novoHistorico);
+
+      // Atualiza status do procedimento
+      await updateDoc(clienteRef, { statusProc: proc });
+
+      // FATURAMENTO SEMANAL
+      const semanaId = getSemanaId(); // ex: "2025-30"
+      const faturamentoRef = doc(database, 'user', user.uid, 'Faturamento', semanaId);
+      const faturamentoSnap = await getDoc(faturamentoRef);
+
+      if (faturamentoSnap.exists()) {
+        await updateDoc(faturamentoRef, {
+          valor: increment(valor),
+          ultimaAtualizacao: Timestamp.now(),
+        });
+      } else {
+        await setDoc(
+          faturamentoRef,
+          {
+            valor: increment(valor),
+            semanaId: semanaId,
+            dataInicioSemana: Timestamp.now(), // salva no primeiro uso
+            ultimaAtualizacao: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      }
+
+      // Sucesso!
       Toast.show({ type: 'info', text1: 'Procedimento atualizado com sucesso!', position: 'bottom' });
       limparClientes();
       navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
     } catch (error) {
       console.error('Erro ao atualizar procedimento:', error);
+      Toast.show({ type: 'error', text1: 'Erro ao salvar procedimento.', position: 'bottom' });
     }
   };
 
-const excluirCliente = async () => {
-  const user = getAuth().currentUser;
-  if (!user?.uid) {
-    return Toast.show({ type: 'error', text1: 'Erro ao excluir cliente', position: 'bottom' });
-  }
+  const excluirCliente = async () => {
+    const user = getAuth().currentUser;
+    if (!user?.uid) {
+      return Toast.show({ type: 'error', text1: 'Erro ao excluir cliente', position: 'bottom' });
+    }
 
-  if (!cliente?.id || !cliente?.clienteId) {
-    console.error('Dados do cliente incompletos:', cliente);
-    return Toast.show({ type: 'error', text1: 'Cliente inválido', position: 'bottom' });
-  }
+    if (!cliente?.id || !cliente?.clienteId) {
+      console.error('Dados do cliente incompletos:', cliente);
+      return Toast.show({ type: 'error', text1: 'Cliente inválido', position: 'bottom' });
+    }
 
-  const storage = getStorage();
+    const storage = getStorage();
 
-  try {
-    // 1) Excluir arquivos apontados no histórico (que contêm fullPath)
-    const histRef = collection(
-      database,
-      'user',
-      user.uid,
-      'Clientes',
-      cliente.id,
-      'Historico'
-    );
-    const histSnap = await getDocs(histRef);
-    const pathsToDelete: string[] = [];
-    histSnap.docs.forEach((docSnap) => {
-      const data = docSnap.data();
-      if (data.fotoPath) {
-        pathsToDelete.push(data.fotoPath as string);
-      }
-    });
+    try {
+      // 1) Excluir arquivos apontados no histórico (que contêm fullPath)
+      const histRef = collection(
+        database,
+        'user',
+        user.uid,
+        'Clientes',
+        cliente.id,
+        'Historico'
+      );
+      const histSnap = await getDocs(histRef);
+      const pathsToDelete: string[] = [];
+      histSnap.docs.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.fotoPath) {
+          pathsToDelete.push(data.fotoPath as string);
+        }
+      });
 
-    // Executa exclusão de cada arquivo no Storage
-    await Promise.all(
-      pathsToDelete.map((fullPath) => {
-        const fileRef = ref(storage, fullPath);
-        return deleteObject(fileRef).catch((err) => {
-          console.error(`Falha ao apagar ${fullPath}:`, err.code, err.message);
-        });
-      })
-    );
+      // Executa exclusão de cada arquivo no Storage
+      await Promise.all(
+        pathsToDelete.map((fullPath) => {
+          const fileRef = ref(storage, fullPath);
+          return deleteObject(fileRef).catch((err) => {
+            console.error(`Falha ao apagar ${fullPath}:`, err.code, err.message);
+          });
+        })
+      );
 
-    // 2) Excluir assinatura, se existir
-    const assinaturaPath = `user/${user.uid}/Assinaturas/${cliente.id}.png`;
-    const assinaturaRef = ref(storage, assinaturaPath);
-    await deleteObject(assinaturaRef).catch((err: any) => {
-      if (err.code === 'storage/object-not-found') {
+      // 2) Excluir assinatura, se existir
+      const assinaturaPath = `user/${user.uid}/Assinaturas/${cliente.id}.png`;
+      const assinaturaRef = ref(storage, assinaturaPath);
+      await deleteObject(assinaturaRef).catch((err: any) => {
+        if (err.code === 'storage/object-not-found') {
 
-      } else {
-        console.error(`Erro ao excluir assinatura:`, err.code, err.message);
-      }
-    });
+        } else {
+          console.error(`Erro ao excluir assinatura:`, err.code, err.message);
+        }
+      });
 
-    // 3) Excluir histórico Firestore
-    await Promise.all(histSnap.docs.map((d) => deleteDoc(d.ref)));
+      // 3) Excluir histórico Firestore
+      await Promise.all(histSnap.docs.map((d) => deleteDoc(d.ref)));
 
-    // 4) Excluir documento principal do cliente
-    await deleteDoc(
-      doc(database, 'user', user.uid, 'Clientes', cliente.id)
-    );
+      // 4) Excluir documento principal do cliente
+      await deleteDoc(
+        doc(database, 'user', user.uid, 'Clientes', cliente.id)
+      );
 
-    // 5) Excluir agendamentos vinculados
-    const agendRef = collection(
-      database,
-      'user',
-      user.uid,
-      'Agendamentos'
-    );
-    const q = query(agendRef, where('clienteId', '==', cliente.clienteId));
-    const agenSnap = await getDocs(q);
-    await Promise.all(agenSnap.docs.map((d) => deleteDoc(d.ref)));
+      // 5) Excluir agendamentos vinculados
+      const agendRef = collection(
+        database,
+        'user',
+        user.uid,
+        'Agendamentos'
+      );
+      const q = query(agendRef, where('clienteId', '==', cliente.clienteId));
+      const agenSnap = await getDocs(q);
+      await Promise.all(agenSnap.docs.map((d) => deleteDoc(d.ref)));
 
-    Toast.show({ type: 'info', text1: 'Cliente excluído com sucesso!', position: 'bottom' });
-    limparClientes();
-    navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
-  } catch (err: any) {
-    console.error('Erro geral ao excluir cliente:', err.code, err.message);
-    Toast.show({ type: 'error', text1: 'Não foi possível excluir o cliente.', position: 'bottom' });
-  }
-};
+      Toast.show({ type: 'info', text1: 'Cliente excluído com sucesso!', position: 'bottom' });
+      limparClientes();
+      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+    } catch (err: any) {
+      console.error('Erro geral ao excluir cliente:', err.code, err.message);
+      Toast.show({ type: 'error', text1: 'Não foi possível excluir o cliente.', position: 'bottom' });
+    }
+  };
 
 
 
@@ -571,17 +615,17 @@ const excluirCliente = async () => {
                     <ActivityIndicator size="large" color={colors.primary} />
                   ) : (
                     <>
-                    <FormButton
-                      title="Gerar PDF do formulário"
-                      onPress={verifyFormulário}
-                      maxWidth={200}
-                    />
-                    <FormButton
-                      title="Editar Cliente"
-                      onPress={() => {navigation.navigate('EditarCliente', { cliente }); fecharMenu();}}
-                      maxWidth={200}
-                      secondary
-                    />
+                      <FormButton
+                        title="Gerar PDF do formulário"
+                        onPress={verifyFormulário}
+                        maxWidth={200}
+                      />
+                      <FormButton
+                        title="Editar Cliente"
+                        onPress={() => { navigation.navigate('EditarCliente', { cliente }); fecharMenu(); }}
+                        maxWidth={200}
+                        secondary
+                      />
                     </>
                   )}
 
